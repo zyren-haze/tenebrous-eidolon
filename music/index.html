@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Arcadia · 音乐库</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f0e6;color:#30332e;font-family:"Noto Serif SC","Songti SC",Georgia,serif}
+.wrap{max-width:720px;margin:0 auto;padding:22px 18px 150px}
+header{padding:8px 2px 18px;border-bottom:1px solid rgba(48,51,46,.18)}
+h1{font-size:28px;font-weight:400;letter-spacing:.08em;margin:0 0 8px}
+.sub{font-size:13px;color:#6f756d;line-height:1.7}
+.list{margin-top:8px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(48,51,46,.12)}
+.num{width:26px;font-size:12px;color:#8a9187;flex:none}
+.meta{flex:1;min-width:0}
+.title{font-size:16px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist{font-size:12px;color:#737a71;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time{font-size:12px;color:#8a9187;flex:none;width:42px;text-align:right}
+.actions{display:flex;gap:6px;flex:none}
+button{font:inherit;border:1px solid rgba(48,51,46,.25);background:rgba(255,255,255,.55);color:#30332e;border-radius:999px;padding:7px 10px;font-size:12px}
+button:active{background:#30332e;color:#f4f0e6}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(244,240,230,.96);backdrop-filter:blur(14px);border-top:1px solid rgba(48,51,46,.16);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.now{font-size:12px;color:#737a71;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+audio{width:100%;height:38px;display:block}
+.hint{font-size:11px;color:#8a9187;margin-top:6px}
+@media(max-width:420px){.actions button{padding:6px 8px}.time{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Arcadia · 音乐库</h1>
+<div class="sub">34 首 · 点「播放」直接听；点「复制直链」，去 Arcadia 听歌页粘进链接导入。</div>
+</header>
+<div class="list" id="list"></div>
+</div>
+<div class="player">
+<div class="now" id="now">还没有选歌</div>
+<audio id="audio" controls preload="metadata"></audio>
+<div class="hint">直链走 jsDelivr CDN，手机浏览器可直接播放。</div>
+</div>
+<script>
+const TRACKS = [{"i": 1, "artist": "郑润泽", "title": "绽放", "dur": 240, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/01-%E9%83%91%E6%B6%A6%E6%B3%BD-%E7%BB%BD%E6%94%BE.mp3"}, {"i": 2, "artist": "TC", "title": "熄灭", "dur": 148, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/02-TC-%E7%86%84%E7%81%AD.mp3"}, {"i": 3, "artist": "Starling8/DRODUMANA/FIVESTAR", "title": "苦茶子", "dur": 170, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/03-Starling8_DRODUMANA_FIVESTAR-%E8%8B%A6%E8%8C%B6%E5%AD%90.mp3"}, {"i": 4, "artist": "颜人中", "title": "有些", "dur": 229, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/04-%E9%A2%9C%E4%BA%BA%E4%B8%AD-%E6%9C%89%E4%BA%9B.mp3"}, {"i": 5, "artist": "颜人中", "title": "我只能离开 (陷在这漩涡之间)", "dur": 230, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/05-%E9%A2%9C%E4%BA%BA%E4%B8%AD-%E6%88%91%E5%8F%AA%E8%83%BD%E7%A6%BB%E5%BC%80%20%28%E9%99%B7%E5%9C%A8%E8%BF%99%E6%BC%A9%E6%B6%A1%E4%B9%8B%E9%97%B4%29.mp3"}, {"i": 6, "artist": "王贰浪", "title": "把回忆拼好给你", "dur": 381, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/06-%E7%8E%8B%E8%B4%B0%E6%B5%AA-%E6%8A%8A%E5%9B%9E%E5%BF%86%E6%8B%BC%E5%A5%BD%E7%BB%99%E4%BD%A0.mp3"}, {"i": 7, "artist": "林达浪/h3R3", "title": "还是会想你", "dur": 190, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/07-%E6%9E%97%E8%BE%BE%E6%B5%AA_h3R3-%E8%BF%98%E6%98%AF%E4%BC%9A%E6%83%B3%E4%BD%A0.mp3"}, {"i": 8, "artist": "梨冻紧/Wiz_H张子豪", "title": "罗生门（Follow）", "dur": 243, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/08-%E6%A2%A8%E5%86%BB%E7%B4%A7_Wiz_H%E5%BC%A0%E5%AD%90%E8%B1%AA-%E7%BD%97%E7%94%9F%E9%97%A8%EF%BC%88Follow%EF%BC%89.mp3"}, {"i": 9, "artist": "颜人中", "title": "嗜好", "dur": 284, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/09-%E9%A2%9C%E4%BA%BA%E4%B8%AD-%E5%97%9C%E5%A5%BD.mp3"}, {"i": 10, "artist": "Laufey", "title": "From The Start", "dur": 169, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/10-Laufey-From%20The%20Start.mp3"}, {"i": 11, "artist": "马也_Crabbit", "title": "海屿你 (求你别离开我)", "dur": 295, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/11-%E9%A9%AC%E4%B9%9F_Crabbit-%E6%B5%B7%E5%B1%BF%E4%BD%A0%20%28%E6%B1%82%E4%BD%A0%E5%88%AB%E7%A6%BB%E5%BC%80%E6%88%91%29.mp3"}, {"i": 12, "artist": "Noah Floersch", "title": "The Bird Song", "dur": 233, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/12-Noah%20Floersch-The%20Bird%20Song.mp3"}, {"i": 13, "artist": "Cassanova", "title": "You Look Lonely", "dur": 90, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/13-Cassanova-You%20Look%20Lonely.mp3"}, {"i": 14, "artist": "圈圈菌", "title": "come back to me (回到我身边)", "dur": 127, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/14-%E5%9C%88%E5%9C%88%E8%8F%8C-come%20back%20to%20me%20%28%E5%9B%9E%E5%88%B0%E6%88%91%E8%BA%AB%E8%BE%B9%29.mp3"}, {"i": 15, "artist": "DJ Comento", "title": "She Said She's from the Islands (Kompa)", "dur": 113, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/15-DJ%20Comento-She%20Said%20She%27s%20from%20the%20Islands%20%28Kompa%29.mp3"}, {"i": 16, "artist": "Xcho/МОТ", "title": "Баллада (民谣)", "dur": 182, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/16-Xcho_%D0%9C%D0%9E%D0%A2-%D0%91%D0%B0%D0%BB%D0%BB%D0%B0%D0%B4%D0%B0%20%28%E6%B0%91%E8%B0%A3%29.mp3"}, {"i": 17, "artist": "曲婉婷", "title": "我的歌声里 (You Exist In My Song)", "dur": 216, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/17-%E6%9B%B2%E5%A9%89%E5%A9%B7-%E6%88%91%E7%9A%84%E6%AD%8C%E5%A3%B0%E9%87%8C%20%28You%20Exist%20In%20My%20Song%29.mp3"}, {"i": 18, "artist": "曾舜晞", "title": "一人行 (Dehors粤语版)", "dur": 197, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/18-%E6%9B%BE%E8%88%9C%E6%99%9E-%E4%B8%80%E4%BA%BA%E8%A1%8C%20%28Dehors%E7%B2%A4%E8%AF%AD%E7%89%88%29.mp3"}, {"i": 19, "artist": "队长", "title": "予你 (巫哲原著小说《解药》官方主题曲)", "dur": 231, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/19-%E9%98%9F%E9%95%BF-%E4%BA%88%E4%BD%A0%20%28%E5%B7%AB%E5%93%B2%E5%8E%9F%E8%91%97%E5%B0%8F%E8%AF%B4%E3%80%8A%E8%A7%A3%E8%8D%AF%E3%80%8B%E5%AE%98%E6%96%B9%E4%B8%BB%E9%A2%98%E6%9B%B2%29.mp3"}, {"i": 20, "artist": "brrrrravo", "title": "Wander Mode", "dur": 170, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/20-brrrrravo-Wander%20Mode.mp3"}, {"i": 21, "artist": "Sainte Barbe/Shiloh Dynasty", "title": "One More Shot", "dur": 188, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/21-Sainte%20Barbe_Shiloh%20Dynasty-One%20More%20Shot.mp3"}, {"i": 22, "artist": "Rio Romeo", "title": "Nothing's New", "dur": 211, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/22-Rio%20Romeo-Nothing%27s%20New.mp3"}, {"i": 23, "artist": "Palm Trees/Sophia Ayana/Mount Cashmore", "title": "They Told Me ((Mount Cashmore Remix))", "dur": 181, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/23-Palm%20Trees_Sophia%20Ayana_Mount%20Cashmore-They%20Told%20Me%20%28%28Mount%20Cashmore%20Remix%29%29.mp3"}, {"i": 24, "artist": "Sophia Ayana", "title": "Greatness", "dur": 77, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/24-Sophia%20Ayana-Greatness.mp3"}, {"i": 25, "artist": "RudeLies/Hot Shade/Palm Trees/Sophia Ayana", "title": "My Body (RudeLies ReBoot)", "dur": 190, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/25-RudeLies_Hot%20Shade_Palm%20Trees_Sophia%20Ayana-My%20Body%20%28RudeLies%20ReBoot%29.mp3"}, {"i": 26, "artist": "Sophia Ayana", "title": "Heartbreak Hotel", "dur": 218, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/26-Sophia%20Ayana-Heartbreak%20Hotel.mp3"}, {"i": 27, "artist": "Palm Trees/Sophia Ayana", "title": "They Told Me", "dur": 181, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/27-Palm%20Trees_Sophia%20Ayana-They%20Told%20Me.mp3"}, {"i": 28, "artist": "XYLØ", "title": "Yes & No", "dur": 179, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/28-XYL%C3%98-Yes%20%26%20No.mp3"}, {"i": 29, "artist": "Sophia Ayana", "title": "Heartbreak Hotel", "dur": 218, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/29-Sophia%20Ayana-Heartbreak%20Hotel.mp3"}, {"i": 30, "artist": "XMASwu(吴骜)", "title": "7 %", "dur": 172, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/30-XMASwu%28%E5%90%B4%E9%AA%9C%29-7%20%25.mp3"}, {"i": 31, "artist": "刘瑞琦", "title": "浪漫爱", "dur": 230, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/31-%E5%88%98%E7%91%9E%E7%90%A6-%E6%B5%AA%E6%BC%AB%E7%88%B1.mp3"}, {"i": 32, "artist": "Nozomi Kitay/GAL D/百足", "title": "Moshi Moshi (feat. 百足) [Sped up]", "dur": 147, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/32-Nozomi%20Kitay_GAL%20D_%E7%99%BE%E8%B6%B3-Moshi%20Moshi%20%28feat.%20%E7%99%BE%E8%B6%B3%29%20%5BSped%20up%5D.mp3"}, {"i": 33, "artist": "杜宣达", "title": "恋人未满", "dur": 268, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/33-%E6%9D%9C%E5%AE%A3%E8%BE%BE-%E6%81%8B%E4%BA%BA%E6%9C%AA%E6%BB%A1.mp3"}, {"i": 34, "artist": "萧潇", "title": "爱要坦荡荡", "dur": 238, "url": "https://cdn.jsdelivr.net/gh/zyren-haze/tenebrous-eidolon@main/music/34-%E8%90%A7%E6%BD%87-%E7%88%B1%E8%A6%81%E5%9D%A6%E8%8D%A1%E8%8D%A1.mp3"}];
+const list=document.getElementById('list');
+const audio=document.getElementById('audio');
+const now=document.getElementById('now');
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function play(t){
+  audio.src=t.url; audio.play().catch(()=>{});
+  now.textContent='正在播放 · '+t.artist+'《'+t.title+'》';
+}
+async function copy(t){
+  try{await navigator.clipboard.writeText(t.url); alert('已复制直链：'+t.title)}
+  catch(e){prompt('复制这条直链',t.url)}
+}
+TRACKS.forEach(t=>{
+  const row=document.createElement('div'); row.className='row';
+  row.innerHTML='<div class="num">'+String(t.i).padStart(2,'0')+'</div><div class="meta"><div class="title"></div><div class="artist"></div></div><div class="time">'+fmt(t.dur)+'</div><div class="actions"><button>播放</button><button>复制直链</button></div>';
+  row.querySelector('.title').textContent=t.title;
+  row.querySelector('.artist').textContent=t.artist;
+  const bs=row.querySelectorAll('button');
+  bs[0].onclick=()=>play(t);
+  bs[1].onclick=()=>copy(t);
+  list.appendChild(row);
+});
+</script>
+</body>
+</html>
