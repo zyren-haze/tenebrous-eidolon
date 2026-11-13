@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <script>
+      (function() {
+        // 1. Filter console.error for any lingering Vite HMR WebSocket connection messages
+        var origConsoleError = console.error;
+        console.error = function() {
+          var msg = arguments && arguments[0];
+          if (typeof msg === 'string' && (
+            msg.indexOf('WebSocket closed without opened') !== -1 ||
+            msg.indexOf('[vite] failed to connect to websocket') !== -1
+          )) {
+            return;
+          }
+          origConsoleError.apply(console, arguments);
+        };
+
+        // 2. Intercept window error and unhandledrejection events
+        window.addEventListener('error', function(e) {
+          if (e && e.message && e.message.indexOf('WebSocket closed without opened') !== -1) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e && e.reason;
+          var msg = (typeof reason === 'string') ? reason : (reason && reason.message);
+          if (typeof msg === 'string' && msg.indexOf('WebSocket closed without opened') !== -1) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+          }
+        }, true);
+
+        // 3. Shim window.WebSocket for Vite internal protocols ('vite-hmr', 'vite-ping')
+        if (typeof window !== 'undefined' && window.WebSocket) {
+          var OriginalWS = window.WebSocket;
+          var ViteDummyWS = function(url, protocols) {
+            var isViteProtocol = (typeof protocols === 'string' && (protocols === 'vite-hmr' || protocols === 'vite-ping')) ||
+                                 (Array.isArray(protocols) && (protocols.includes('vite-hmr') || protocols.includes('vite-ping')));
+            if (isViteProtocol) {
+              var target = new EventTarget();
+              target.binaryType = 'blob';
+              target.bufferedAmount = 0;
+              target.extensions = '';
+              target.protocol = typeof protocols === 'string' ? protocols : 'vite-hmr';
+              target.readyState = 1; // WebSocket.OPEN
+              target.url = url || '';
+              target.close = function() {};
+              target.send = function() {};
+              setTimeout(function() {
+                if (typeof target.onopen === 'function') {
+                  try { target.onopen(new Event('open')); } catch (_) {}
+                }
+                target.dispatchEvent(new Event('open'));
+              }, 10);
+              return target;
+            }
+            return new OriginalWS(url, protocols);
+          };
+          ViteDummyWS.prototype = OriginalWS.prototype;
+          ViteDummyWS.CONNECTING = OriginalWS.CONNECTING;
+          ViteDummyWS.OPEN = OriginalWS.OPEN;
+          ViteDummyWS.CLOSING = OriginalWS.CLOSING;
+          ViteDummyWS.CLOSED = OriginalWS.CLOSED;
+          window.WebSocket = ViteDummyWS;
+        }
+      })();
+    </script>
+    <title>Ananke</title>
+    <meta name="theme-color" content="#171717" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Ananke" />
+    <link rel="icon" type="image/svg+xml" href="./ananke-logo.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta name="description" content="Ananke - 字卡小手机互动网页应用" />
+    <meta property="og:title" content="Ananke" />
+    <meta property="og:description" content="Ananke - 字卡小手机互动网页应用" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" crossorigin src="./assets/index-omv3HEzn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DkwvoroM.css">
+  <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
+  <body class="overflow-hidden select-none bg-neutral-900">
+    <div id="root"></div>
+  </body>
+</html>
+
