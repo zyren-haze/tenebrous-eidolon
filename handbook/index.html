@@ -772,6 +772,21 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
   .him-note .hn-facts{grid-template-columns:1fr}
   .him-note .hn-facts>div:last-child{grid-column:auto}
 }
+
+.ss-tip{font-size:11px;line-height:1.7;color:var(--ui-ink-3);margin:-6px 0 10px;padding-left:2px}
+.ss-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--ui-line-2);display:grid;place-items:center;color:var(--ui-ink-2);background:var(--ui-2)}
+.icon-btn:hover{border-color:var(--rose);color:var(--rose-2)}
+.icon-btn svg{width:15px;height:15px}
+.btn.mini{height:30px;padding:0 12px;font-size:11px;border-radius:8px}
+.cl-quick{display:flex;gap:8px;margin:12px 0 4px;flex-wrap:wrap}
+.cl-quick .btn{flex:1 1 120px;justify-content:center;background:var(--ui-2);border:1px solid var(--ui-line-2);height:38px;border-radius:10px}
+.cl-quick .btn:hover{border-color:var(--rose);color:var(--rose-2)}
+.cl-note{font-size:11.5px;line-height:1.8;color:var(--ui-ink-2);background:var(--ui-3);border-radius:9px;padding:10px 12px;margin:10px 0}
+.cl-note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:rgba(255,255,255,.55);padding:1px 4px;border-radius:4px}
+.cl-adv{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 2px;border-top:1px dashed var(--ui-line);font-size:12px;color:var(--ui-ink-2);letter-spacing:.04em}
+.cl-adv b{transition:.2s;font-weight:400;color:var(--ui-ink-3)}
+.cl-adv.open b{transform:rotate(90deg)}
 </style>
 </head>
 <body>
@@ -992,11 +1007,17 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
       <h3>心音</h3>
       <div class="ss-row">
         <div class="ss-lb">心跳聲<span>寫手帳、看他的時候都能聽見</span></div>
-        <button class="switch" id="setSound" role="switch" aria-checked="false"><i></i></button>
+        <div class="ss-right">
+          <button class="icon-btn" id="soundTest" title="試聽心跳" aria-label="試聽心跳">
+            <svg viewBox="0 0 24 24"><path d="M4 13h3l2-4 3 8 3-6 1.5 2H20" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <button class="switch" id="setSound" role="switch" aria-checked="false"><i></i></button>
+        </div>
       </div>
+      <div class="ss-tip" id="soundHint" hidden>若無聲，請關閉 iPhone 側邊靜音鍵；心跳屬環境音，會被靜音鍵攔下。</div>
       <div class="ss-row">
         <div class="ss-lb">音量</div>
-        <input class="range" id="setVol" type="range" min="0" max="100" value="35">
+        <input class="range" id="setVol" type="range" min="0" max="100" value="45">
       </div>
       <div class="ss-row">
         <div class="ss-lb">音色<span>依他的體質與性格挑一個</span></div>
@@ -1208,18 +1229,27 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
   <div class="mask" data-close="cloudModal"></div>
   <div class="sheet">
     <div class="sheet-head">
-      <div><h2>雲端同步</h2><p>換裝置登入，本子、排版、人設、紀念日全部回來。</p></div>
+      <div><h2>資料與同步</h2><p>平常不用登入：改動會自動存進這台裝置。</p></div>
       <button class="x-btn" data-close="cloudModal">✕</button>
     </div>
-    <div class="cl-status" id="clStatus">目前是本機模式。</div>
-    <div class="field"><label>伺服器位址</label><input id="clServer" placeholder="http://localhost:5178"></div>
-    <div class="field"><label>信箱</label><input id="clEmail" type="email" placeholder="you@example.com"></div>
-    <div class="field"><label>密碼</label><input id="clPass" type="password" placeholder="至少 6 位"></div>
-    <div class="sheet-foot" style="justify-content:space-between">
-      <button class="btn ghost" id="clLocal">回到本機模式</button>
-      <div style="display:flex;gap:8px">
-        <button class="btn" id="clRegister">註冊</button>
-        <button class="btn primary" id="clLogin">登入並同步</button>
+    <div class="cl-status" id="clStatus">本機模式：不用登入，資料自動存在這台裝置。</div>
+    <div class="cl-quick">
+      <button class="btn ghost" id="clExport">匯出備份</button>
+      <button class="btn ghost" id="clImport">匯入備份</button>
+    </div>
+    <p class="cl-note">換手機或換裝置時，用匯出／匯入就能完整搬移（含圖片）。<br>要「自動同步」才需要下面這台自建伺服器。</p>
+    <button class="cl-adv" id="clAdvBtn"><span>進階：連接自建伺服器</span><b>›</b></button>
+    <div id="clAdvanced" class="hidden">
+      <div class="cl-note">GitHub Pages 只有靜態頁，沒有後端。請在電腦上執行 <code>server/server.js</code>，再填它的位址。</div>
+      <div class="field"><label>伺服器位址</label><input id="clServer" placeholder="http://localhost:5178"></div>
+      <div class="field"><label>信箱</label><input id="clEmail" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>密碼</label><input id="clPass" type="password" placeholder="至少 6 位"></div>
+      <div class="sheet-foot" style="justify-content:space-between">
+        <button class="btn ghost" id="clLocal">回到本機模式</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="clRegister">註冊</button>
+          <button class="btn primary" id="clLogin">登入並同步</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1492,7 +1522,7 @@ function initialState() {
     activeBookId: null,
     persona: defaultPersona(),
     anniversaries: [],
-    settings: { theme: 'auto', sound: { on: false, vol: 35, tone: 'steady' }, cloud: {} }
+    settings: { theme: 'auto', sound: { on: false, vol: 45, tone: 'steady' }, cloud: {} }
   };
 }
 
@@ -1504,7 +1534,7 @@ function migrateState(raw) {
     activeBookId: raw.activeBookId || null,
     anniversaries: Array.isArray(raw.anniversaries) ? raw.anniversaries : [],
     persona: defaultPersona(),
-    settings: { theme: 'auto', sound: { on: false, vol: 35, tone: 'steady' }, cloud: {} }
+    settings: { theme: 'auto', sound: { on: false, vol: 45, tone: 'steady' }, cloud: {} }
   };
   if (raw.persona && typeof raw.persona === 'object') Object.assign(s.persona, raw.persona);
   else {
@@ -2551,9 +2581,9 @@ function stopECG() {
    17. 心跳聲（僅心跳，無呼吸）
    ============================================================ */
 const TONES = {
-  steady: { freqs: [[52, .5, .15], [42, .28, .13], [76, .12, .09]], gaps: [0, .058, .18] },
-  light: { freqs: [[70, .4, .11], [56, .22, .1], [96, .1, .08]], gaps: [0, .046, .15] },
-  faint: { freqs: [[46, .2, .17], [36, .12, .14], [64, .05, .1]], gaps: [0, .07, .21] }
+  steady: { freqs: [[58, .40, .16], [44, .22, .13], [200, .20, .045], [84, .08, .08]], gaps: [0, .055, .002, .17] },
+  light: { freqs: [[84, .34, .10], [62, .18, .09], [240, .20, .04], [104, .07, .06]], gaps: [0, .045, 0, .12] },
+  faint: { freqs: [[50, .18, .17], [40, .10, .14], [150, .10, .05], [70, .05, .08]], gaps: [0, .07, 0, .20] }
 };
 
 const Heart = {
@@ -2571,7 +2601,7 @@ const Heart = {
   },
   vol() {
     const s = (state.settings && state.settings.sound) || {};
-    return clamp((s.vol == null ? 35 : s.vol) / 100, 0, 1);
+    return clamp((s.vol == null ? 45 : s.vol) / 100, 0, 1);
   },
   tone() { return P().tone || (state.settings.sound && state.settings.sound.tone) || 'steady'; },
 
@@ -2580,7 +2610,7 @@ const Heart = {
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
     this.on = true;
     this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(this.vol() * 0.55, this.ctx.currentTime + 0.3);
+    this.master.gain.linearRampToValueAtTime(this.vol() * 0.9, this.ctx.currentTime + 0.3);
     this.next = this.ctx.currentTime + 0.2;
     if (!this.timer) this.timer = setInterval(() => this.schedule(), 25);
     const p = P();
@@ -2623,10 +2653,25 @@ const Heart = {
     o.frequency.setValueAtTime(freq, start);
     o.frequency.exponentialRampToValueAtTime(freq * 0.62, start + dur);
     g.gain.setValueAtTime(0.0001, start);
-    g.gain.linearRampToValueAtTime(vol, start + 0.008);
+    g.gain.linearRampToValueAtTime(vol, start + 0.006);
     g.gain.exponentialRampToValueAtTime(0.0009, start + dur);
     o.connect(g); g.connect(this.master);
     o.start(start); o.stop(start + dur + 0.03);
+  },
+  async preview() {
+    if (!this.init()) return false;
+    if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
+    if (this.ctx.state !== 'running') return false;
+    const t = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(t);
+    this.master.gain.setValueAtTime(this.vol() * 0.9, t);
+    this.beat(t + 0.04);
+    setTimeout(() => {
+      if (!this.on && this.ctx) {
+        try { this.master.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2); } catch (e) {}
+      }
+    }, 600);
+    return true;
   },
   beat(t) {
     if (this.audioEl && this.on && P().audioUrl) return;
@@ -2846,7 +2891,7 @@ function closeSettings() {
 function renderSettingsValues() {
   $$('#themeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeVal === ((state.settings && state.settings.theme) || 'auto'))));
   $('#setSound').setAttribute('aria-checked', String(soundOn()));
-  $('#setVol').value = state.settings.sound.vol == null ? 35 : state.settings.sound.vol;
+  $('#setVol').value = state.settings.sound.vol == null ? 45 : state.settings.sound.vol;
   $$('#toneSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tone === ((P().tone) || 'steady'))));
   $('#setPersonaName').textContent = personaReady() ? P().name : '未設定 ›';
   $('#setAnniCount').textContent = (state.anniversaries || []).length + ' 個 ›';
@@ -3187,7 +3232,7 @@ $('#setSound').addEventListener('click', () => setSound(!soundOn()));
 $('#setVol').addEventListener('input', e => {
   state.settings.sound.vol = +e.target.value;
   const p = P(); p.vol = state.settings.sound.vol;
-  if (Heart.on && Heart.ctx) { try { Heart.master.gain.linearRampToValueAtTime(Heart.vol() * 0.55, Heart.ctx.currentTime + 0.15); } catch (err) {} }
+  if (Heart.on && Heart.ctx) { try { Heart.master.gain.linearRampToValueAtTime(Heart.vol() * 0.9, Heart.ctx.currentTime + 0.15); } catch (err) {} }
   if (Heart.audioEl) Heart.audioEl.volume = Heart.vol();
   persist();
 });
@@ -3418,11 +3463,26 @@ function openCloudModal() {
   $('#clServer').value = Cloud.cfg.apiBase || '';
   $('#clEmail').value = Cloud.cfg.email || '';
   $('#clStatus').textContent = Cloud.base()
-    ? (Cloud.token() ? '已連線：' + Cloud.base() : '尚未登入，註冊或登入後即可同步。')
-    : '目前是本機模式：資料只在這台裝置。啟動 server/ 後填入位址即可雲端同步。';
+    ? (Cloud.token() ? '已連線：' + Cloud.base() : '尚未登入，展開下方進階設定。')
+    : '本機模式：不用登入，資料自動存在這台裝置。';
+  if (Cloud.base()) $('#clAdvanced').classList.remove('hidden');
   openModal('cloudModal');
 }
 $('#cloudBtn').addEventListener('click', openCloudModal);
+$('#clAdvBtn').addEventListener('click', () => {
+  const box = $('#clAdvanced');
+  box.classList.toggle('hidden');
+  $('#clAdvBtn').classList.toggle('open', !box.classList.contains('hidden'));
+});
+$('#clExport').addEventListener('click', exportBackup);
+$('#clImport').addEventListener('click', () => $('#importInput').click());
+$('#soundTest').addEventListener('click', async () => {
+  const ok = await Heart.preview();
+  if (!ok) toast('這裡發不出聲音');
+});
+if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+  const h = $('#soundHint'); if (h) h.removeAttribute('hidden');
+}
 $('#clLogin').addEventListener('click', async () => {
   const server = ($('#clServer').value || '').trim().replace(/\/+$/, '');
   const email = ($('#clEmail').value || '').trim();
