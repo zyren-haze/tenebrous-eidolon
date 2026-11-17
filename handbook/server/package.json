@@ -1,0 +1,15 @@
+{
+  "name": "mengyi-handbook-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "夢囈手帳后端：账号、云端同步、生命体征演算、图片存储、每日备份",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" },
+  "optionalDependencies": {
+    "mongoose": "^8.0.0",
+    "ali-oss": "^6.21.0"
+  }
+}
