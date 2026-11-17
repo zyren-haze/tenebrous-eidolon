@@ -88,7 +88,7 @@ h1,h2,h3{margin:0;font-weight:600}
 .hidden{display:none!important}
 
 #app{
-  position:relative;height:100%;display:flex;flex-direction:column;
+  position:relative;height:100vh;height:100dvh;display:flex;flex-direction:column;
   background:
     radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 60%),
     var(--ui);
@@ -144,8 +144,8 @@ html[data-theme="dark"] .tbtn[aria-pressed="true"]{color:var(--ui-ink)}
 .tbtn.on{background:var(--rose-soft);border-color:var(--rose)}
 
 /* ---------- 2. 書架 ---------- */
-.view{position:relative;z-index:1;flex:1 1 auto;min-height:0}
-#shelfView{overflow:auto;padding:clamp(20px,3.4vw,38px) clamp(16px,4vw,48px) 50px}
+.view{position:relative;z-index:1;flex:1 1 auto;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#shelfView{overflow:auto;touch-action:pan-y;padding:clamp(20px,3.4vw,38px) clamp(16px,4vw,48px) 50px}
 .shelf-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}
 .shelf-head h1{font-family:var(--display);font-weight:400;font-size:clamp(23px,3.2vw,34px);letter-spacing:.16em}
 .shelf-head p{margin:6px 0 0;font-size:12px;letter-spacing:.1em;color:var(--ui-ink-3)}
@@ -510,7 +510,7 @@ html[data-theme="dark"] .mu-el{background:linear-gradient(150deg,#f7efdc,#ecdfc6
 .vp-go:hover{border-color:var(--rose);color:var(--rose-2)}
 
 /* ---------- 3. 角色頁 ---------- */
-#himView{overflow:auto;padding:clamp(18px,3vw,34px) clamp(16px,4vw,46px) 40px;background:
+#himView{overflow:auto;touch-action:pan-y;padding:clamp(18px,3vw,34px) clamp(16px,4vw,46px) 40px;background:
   radial-gradient(90% 60% at 50% 0%,var(--rose-soft) 0%,transparent 62%),var(--ui)}
 html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#33292a,transparent 62%),var(--ui)}
 
@@ -594,7 +594,7 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
 .ss-head b{font-family:var(--display);font-size:17px;font-weight:400;letter-spacing:.14em}
 .ss-close{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ui-ink-2);font-size:16px}
 .ss-close:hover{background:var(--ui-3)}
-.ss-body{overflow:auto;padding:6px 18px 40px;flex:1}
+.ss-body{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:6px 18px 40px;flex:1}
 .ss-sec{padding:16px 0 12px;border-bottom:1px solid var(--ui-line)}
 .ss-sec h3{font-size:10px;letter-spacing:.22em;color:var(--ui-ink-3);font-weight:400;margin-bottom:10px}
 .ss-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
@@ -625,7 +625,7 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
 .modal .mask{position:absolute;inset:0;background:rgba(56,42,34,.4);backdrop-filter:blur(2px);animation:fade .25s}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .modal .sheet{
-  position:relative;z-index:1;width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;
+  position:relative;z-index:1;width:min(520px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
   background:var(--ui-2);border:1px solid var(--ui-line);border-radius:18px;
   box-shadow:0 30px 70px rgba(60,45,36,.3);padding:22px;
   animation:sheetIn .3s var(--ease);
@@ -809,6 +809,24 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
 
 .tbtn#soundBtn[aria-pressed="true"]{background:var(--rose-soft);border-color:#e7c7cb;color:#8e5c65}
 .tbtn#soundBtn[aria-pressed="true"] svg{color:#a06b74}
+
+.api-presets{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.api-presets button{height:27px;padding:0 10px;border-radius:999px;border:1px solid var(--ui-line-2);background:var(--ui-2);color:var(--ui-ink-2);font-size:11px}
+.api-presets button:hover{border-color:var(--rose);color:var(--rose-2)}
+.cl-code{margin:14px 0 4px;padding:12px 12px 10px;border:1px solid var(--ui-line);border-radius:10px;background:var(--ui-3)}
+.cl-code-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.cl-code-head b{font-family:var(--display);font-size:13px;letter-spacing:.08em;color:var(--ui-ink)}
+.cl-code-head span{font-size:10px;color:var(--ui-ink-3)}
+.cl-code textarea{width:100%;resize:vertical;min-height:64px;padding:8px;border-radius:8px;border:1px solid var(--ui-line-2);background:var(--ui-2);font-size:11px;line-height:1.5;color:var(--ui-ink-2);word-break:break-all}
+.cl-code-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.cl-code-btns .btn{height:32px;font-size:11.5px;padding:0 14px}
+
+.paper{touch-action:pan-y}
+
+.modal .sheet input,.modal .sheet select,.modal .sheet textarea{touch-action:pan-y}
+
+.ss-sub{font-size:10.5px;color:var(--ui-ink-3);margin:2px 0 8px;letter-spacing:.02em}
+.brand-mini{margin-left:4px}
 </style>
 </head>
 <body>
@@ -1064,6 +1082,12 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
         <div class="ss-lb">接上你的 API<span>每幾秒推演一次，其餘時間本地微調</span></div>
         <button class="switch" id="apiOn" role="switch" aria-checked="false"><i></i></button>
       </div>
+      <div class="api-presets" id="apiPresets">
+        <button data-p="openai">OpenAI</button>
+        <button data-p="deepseek">DeepSeek</button>
+        <button data-p="qwen">通義</button>
+        <button data-p="custom">自訂</button>
+      </div>
       <input class="ss-input" id="apiUrl" placeholder="接口位址（/v1/chat/completions）">
       <input class="ss-input" id="apiModel" placeholder="模型名稱（例 gpt-4o-mini）">
       <input class="ss-input" id="apiKey" type="password" placeholder="API Key（只存在這台裝置）">
@@ -1077,12 +1101,13 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
         </div>
       </div>
       <div class="ss-tip" id="apiStatus">尚未接上，使用本地推演。</div>
-      <div class="ss-tip">接口需允許跨域（CORS）。回傳可為 OpenAI choices 格式，或直接 {"heart_rate":72,"breath_rate":14,"blood_pressure":"118/76"}。</div>
+      <div class="ss-tip">接口需允許跨域；回傳含 heart_rate 的 JSON 即可。</div>
     </div>
 
     <div class="ss-sec">
       <h3>他</h3>
       <button class="ss-link" id="setPersona"><span>角色人設</span><span id="setPersonaName">未設定 ›</span></button>
+      <div class="ss-sub">全站只有這一個角色，不按本子分開。</div>
       <button class="ss-link" id="setAnni"><span>紀念日</span><span id="setAnniCount">0 個 ›</span></button>
     </div>
 
@@ -1288,7 +1313,16 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
       <button class="btn ghost" id="clExport">匯出備份</button>
       <button class="btn ghost" id="clImport">匯入備份</button>
     </div>
-    <p class="cl-note">換手機或換裝置時，用匯出／匯入就能完整搬移（含圖片）。<br>要「自動同步」才需要下面這台自建伺服器。</p>
+    <p class="cl-note">換手機或換裝置時，用下面的「備份碼」最省事：生成、複製、貼到另一台還原，不用帳號。<br>要「自動同步」才需要下面這台自建伺服器。</p>
+    <div class="cl-code">
+      <div class="cl-code-head"><b>備份碼</b><span>含圖片，貼上就能還原</span></div>
+      <textarea id="clCode" rows="3" placeholder="按「生成」帶走，或貼上另一台的備份碼"></textarea>
+      <div class="cl-code-btns">
+        <button class="btn ghost" id="clGen">生成</button>
+        <button class="btn ghost" id="clCopy">複製</button>
+        <button class="btn primary" id="clApply">還原</button>
+      </div>
+    </div>
     <button class="cl-adv" id="clAdvBtn"><span>進階：連接自建伺服器</span><b>›</b></button>
     <div id="clAdvanced" class="hidden">
       <div class="cl-note">GitHub Pages 只有靜態頁，沒有後端。請在電腦上執行 <code>server/server.js</code>，再填它的位址。</div>
@@ -1850,6 +1884,10 @@ function openBook(id) {
   $$('#nav button').forEach(b => b.removeAttribute('aria-current'));
   renderBook();
   requestAnimationFrame(() => { layoutPaper(); renderPage(0); });
+  if (book() && book().pages.length > 1 && !sessionStorage.getItem('mengyi.swipehint')) {
+    setTimeout(() => toast('左右滑動紙面可翻頁', 3600), 700);
+    try { sessionStorage.setItem('mengyi.swipehint', '1'); } catch (e) {}
+  }
 }
 
 function closeBook() {
@@ -2753,9 +2791,9 @@ function stopECG() {
    17. 心跳聲（僅心跳，無呼吸）
    ============================================================ */
 const TONES = {
-  steady: { freqs: [[96, .34, .10], [142, .20, .055], [232, .12, .025], [62, .18, .13]], gaps: [0, .055, .002, .17] },
-  light: { freqs: [[112, .32, .075], [174, .19, .045], [268, .12, .022], [72, .12, .09]], gaps: [0, .045, 0, .12] },
-  faint: { freqs: [[86, .20, .12], [132, .12, .06], [205, .06, .03], [58, .08, .14]], gaps: [0, .07, 0, .20] }
+  steady: { freqs: [[74, .40, .16], [112, .16, .10], [148, .07, .07]], gaps: [0, .035, .12] },
+  light: { freqs: [[92, .34, .12], [138, .14, .08], [176, .06, .05]], gaps: [0, .03, .10] },
+  faint: { freqs: [[62, .24, .18], [96, .10, .12], [128, .04, .08]], gaps: [0, .05, .14] }
 };
 
 const Heart = {
@@ -2789,7 +2827,7 @@ const Heart = {
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
     this.on = true;
     this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(Math.min(1, this.vol() * 1.25), this.ctx.currentTime + 0.3);
+    this.master.gain.linearRampToValueAtTime(Math.min(1, this.vol() * 1.4), this.ctx.currentTime + 0.3);
     this.next = this.ctx.currentTime + 0.2;
     if (!this.timer) this.timer = setInterval(() => this.schedule(), 25);
     const p = P();
@@ -2833,7 +2871,7 @@ const Heart = {
     o.frequency.setValueAtTime(freq, start);
     o.frequency.exponentialRampToValueAtTime(freq * 0.62, start + dur);
     g.gain.setValueAtTime(0.0001, start);
-    g.gain.linearRampToValueAtTime(vol, start + 0.006);
+    g.gain.linearRampToValueAtTime(vol, start + 0.022);
     g.gain.exponentialRampToValueAtTime(0.0009, start + dur);
     o.connect(g); g.connect(this.master);
     o.start(start); o.stop(start + dur + 0.03);
@@ -2844,7 +2882,7 @@ const Heart = {
     if (this.ctx.state !== 'running') return false;
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
-    this.master.gain.setValueAtTime(Math.min(1, this.vol() * 1.25), t);
+    this.master.gain.setValueAtTime(Math.min(1, this.vol() * 1.4), t);
     for (let i = 0; i < 4; i++) this.beat(t + 0.05 + i * 0.85);
     setTimeout(() => {
       if (!this.on && this.ctx) {
@@ -2857,23 +2895,26 @@ const Heart = {
     if (!this.noiseBuf || !this.ctx) return;
     const src = this.ctx.createBufferSource();
     src.buffer = this.noiseBuf;
-    const bp = this.ctx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = freq || 300; bp.Q.value = 0.9;
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = freq || 150; lp.Q.value = 0.6;
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(Math.max(.0001, vol), t);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.linearRampToValueAtTime(Math.max(.0001, vol), t + .015);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-    src.connect(bp); bp.connect(g); g.connect(this.master);
+    src.connect(lp); lp.connect(g); g.connect(this.master);
     src.start(t); src.stop(t + dur + .02);
   },
   beat(t) {
     if (this.audioEl && this.audioReady && this.on && P().audioUrl) return;
     const set = TONES[this.tone()] || TONES.steady;
-    const scale = clamp(this.vol() / 0.55, 0, 1);
+    const scale = clamp(this.vol() / 0.62, 0, 1);
     set.freqs.forEach((f, i) => {
       this.thump(f[0], t + set.gaps[i], clamp(f[1] * scale, 0, 1), f[2]);
     });
-    this.knock(t + .004, .22 * scale, .05, 320);
-    this.knock(t + .2, .1 * scale, .055, 240);
+    this.knock(t + .006, .13 * scale, .12, 145);
+    // 第二聲「撲通」：更輕、更短
+    this.thump(68, t + .24, clamp(.16 * scale, 0, 1), .11);
+    this.knock(t + .245, .06 * scale, .10, 120);
   }
 };
 
@@ -3545,9 +3586,10 @@ function blobToDataURL(blob) {
     fr.readAsDataURL(blob);
   });
 }
-async function exportBackup() {
+async function backupSnapshot() {
   const snap = JSON.parse(JSON.stringify(state));
   if (snap.settings && snap.settings.cloud) delete snap.settings.cloud;
+  if (snap.settings && snap.settings.api) delete snap.settings.api.key;
   for (const bk of snap.books) {
     if (bk.cover && bk.cover.type === 'image' && bk.cover.src && String(bk.cover.src).startsWith('media:')) {
       const bl = await Media.blobOf(bk.cover.src);
@@ -3558,6 +3600,10 @@ async function exportBackup() {
       if (el.cover && String(el.cover).startsWith('media:')) { const bl = await Media.blobOf(el.cover); if (bl) el.cover = await blobToDataURL(bl); }
     }
   }
+  return snap;
+}
+async function exportBackup() {
+  const snap = await backupSnapshot();
   const blob = new Blob([JSON.stringify(snap, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -3570,37 +3616,40 @@ async function dataURLToMedia(v) {
   if (!v || typeof v !== 'string' || !v.startsWith('data:')) return v;
   try { const blob = await (await fetch(v)).blob(); return await Media.put(blob); } catch (e) { return v; }
 }
+async function restoreBackupRaw(raw) {
+  if (!raw || !Array.isArray(raw.books)) throw new Error('bad');
+  toast('正在讀取備份…', 4000);
+  for (const bk of raw.books) {
+    if (bk.cover && bk.cover.type === 'image' && bk.cover.src) bk.cover.src = await dataURLToMedia(bk.cover.src);
+    if (!bk.pages || !bk.pages.length) bk.pages = [newPage()];
+    for (const pg of bk.pages) {
+      pg.elements = Array.isArray(pg.elements) ? pg.elements : [];
+      for (const el of pg.elements) {
+        if (el.src) el.src = await dataURLToMedia(el.src);
+        if (el.cover) el.cover = await dataURLToMedia(el.cover);
+      }
+    }
+  }
+  const cloudCfg = JSON.parse(JSON.stringify((state.settings && state.settings.cloud) || {}));
+  const next = migrateState(raw);
+  next.settings.cloud = cloudCfg;
+  state = next;
+  currentBookId = null;
+  persist();
+  applyTheme();
+  renderShelf();
+  renderHim();
+  updateSoundUI();
+  showShelf();
+  return state.books.length;
+}
 $('#importInput').addEventListener('change', async e => {
   const f = e.target.files && e.target.files[0];
   e.target.value = '';
   if (!f) return;
   try {
-    const raw = JSON.parse(await f.text());
-    if (!raw || !Array.isArray(raw.books)) throw new Error('bad');
-    toast('正在讀取備份…', 4000);
-    for (const bk of raw.books) {
-      if (bk.cover && bk.cover.type === 'image' && bk.cover.src) bk.cover.src = await dataURLToMedia(bk.cover.src);
-      if (!bk.pages || !bk.pages.length) bk.pages = [newPage()];
-      for (const pg of bk.pages) {
-        pg.elements = Array.isArray(pg.elements) ? pg.elements : [];
-        for (const el of pg.elements) {
-          if (el.src) el.src = await dataURLToMedia(el.src);
-          if (el.cover) el.cover = await dataURLToMedia(el.cover);
-        }
-      }
-    }
-    const cloudCfg = JSON.parse(JSON.stringify((state.settings && state.settings.cloud) || {}));
-    const next = migrateState(raw);
-    next.settings.cloud = cloudCfg;
-    state = next;
-    currentBookId = null;
-    persist();
-    applyTheme();
-    renderShelf();
-    renderHim();
-    updateSoundUI();
-    showShelf();
-    toast('已恢復 ' + state.books.length + ' 本');
+    const n = await restoreBackupRaw(JSON.parse(await f.text()));
+    toast('已恢復 ' + n + ' 本');
   } catch (err) { toast('這份備份讀不進來'); }
 });
 
@@ -3709,6 +3758,57 @@ $('#clAdvBtn').addEventListener('click', () => {
 });
 $('#clExport').addEventListener('click', exportBackup);
 $('#clImport').addEventListener('click', () => $('#importInput').click());
+
+/* 備份碼：文字複製／貼上，不用帳號 */
+$('#clGen').addEventListener('click', async () => {
+  const btn = $('#clGen'); btn.disabled = true;
+  toast('正在打包備份…', 4000);
+  try {
+    const snap = await backupSnapshot();
+    const text = JSON.stringify(snap);
+    const ta = $('#clCode'); ta.value = text;
+    ta.scrollTop = 0; ta.setSelectionRange(0, 0); ta.focus();
+    toast('已生成 ' + (text.length / 1024).toFixed(0) + ' KB，按「複製」帶走', 5000);
+  } catch (err) { toast('打包失敗'); }
+  btn.disabled = false;
+});
+$('#clCopy').addEventListener('click', async () => {
+  const ta = $('#clCode');
+  if (!ta.value) { toast('先按「生成」'); return; }
+  try { await navigator.clipboard.writeText(ta.value); toast('已複製，貼到另一台再按「還原」', 5000); }
+  catch (err) { ta.focus(); ta.select(); toast('已選取，長按複製', 4000); }
+});
+$('#clApply').addEventListener('click', () => {
+  const ta = $('#clCode');
+  let raw;
+  try { raw = JSON.parse(ta.value); } catch (err) { toast('備份碼不完整'); return; }
+  if (!raw || !Array.isArray(raw.books)) { toast('這不是備份碼'); return; }
+  confirmAsk('用備份碼覆蓋這台？', '這台目前的內容會被取代。', async () => {
+    try {
+      const n = await restoreBackupRaw(raw);
+      closeModal($('#cloudModal'));
+      toast('已恢復 ' + n + ' 本');
+    } catch (err) { toast('這份備份讀不進來'); }
+  });
+});
+
+/* API 供應商預設 */
+const API_PRESETS = {
+  openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
+  deepseek: { url: 'https://api.deepseek.com/v1/chat/completions', model: 'deepseek-chat' },
+  qwen: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', model: 'qwen-plus' }
+};
+$('#apiPresets').addEventListener('click', e => {
+  const b = e.target.closest('button[data-p]');
+  if (!b) return;
+  const p = API_PRESETS[b.dataset.p];
+  if (!p) { $('#apiUrl').focus(); return; }
+  $('#apiUrl').value = p.url; $('#apiModel').value = p.model;
+  state.settings.api.url = p.url; state.settings.api.model = p.model;
+  persist();
+  $('#apiStatus').textContent = '已填入接口，補上 Key 就能測試。';
+  toast('已填入 ' + b.textContent + ' 的接口');
+});
 $('#soundTest').addEventListener('click', async () => {
   const ok = await Heart.preview();
   if (!ok) { toast('這裡發不出聲音'); return; }
@@ -3749,6 +3849,26 @@ $('#clLocal').addEventListener('click', () => {
   Cloud.cfg.token = '';
   Cloud.cfg.apiBase = '';
   Cloud.setStatus(); closeModal($('#cloudModal')); toast('已回到本機模式');
+});
+
+/* 紙面橫滑翻頁 */
+let paperSwipe = null;
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const paper = $('#paper');
+  if (!paper || !paper.contains(e.target) || e.target.closest('.el,button,input,textarea')) return;
+  paperSwipe = { x: e.clientX, y: e.clientY, t: Date.now(), id: e.pointerId };
+});
+document.addEventListener('pointerup', e => {
+  if (!paperSwipe || (e.pointerId != null && e.pointerId !== paperSwipe.id)) return;
+  const dx = e.clientX - paperSwipe.x, dy = e.clientY - paperSwipe.y;
+  const dt = Date.now() - paperSwipe.t;
+  paperSwipe = null;
+  if (dt > 900 || Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+  const b = book();
+  if (!b) return;
+  if (dx < 0) goPage(currentPage + 1);
+  else goPage(currentPage - 1);
 });
 
 /* ============================================================
