@@ -775,6 +775,8 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
   .him-note .hn-facts>div:last-child{grid-column:auto}
 }
 
+.ss-file-btn{height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--ui-line);background:var(--ui-panel);font-size:12px;color:var(--ui-ink);font-family:inherit;cursor:pointer}
+.ss-file-btn:active{transform:scale(.96)}
 .ss-tip{font-size:11px;line-height:1.7;color:var(--ui-ink-3);margin:-6px 0 10px;padding-left:2px}
 .ss-right{display:flex;align-items:center;gap:8px}
 .icon-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--ui-line-2);display:grid;place-items:center;color:var(--ui-ink-2);background:var(--ui-2)}
@@ -1306,7 +1308,15 @@ body.memo-locked #bkTitle{cursor:default}
         </div>
       </div>
       <div class="ss-row">
-        <div class="ss-lb">聲線</div>
+        <div class="ss-lb">他的原聲<span id="humSampleState">未上傳，目前是合成哼唱</span></div>
+        <div class="ss-right">
+          <button class="ss-file-btn" id="humPick">上傳哼唱</button>
+          <button class="icon-btn" id="humClear" title="清除原聲" aria-label="清除原聲" style="display:none;width:30px;height:30px"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        </div>
+      </div>
+      <input type="file" id="humFile" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" hidden>
+      <div class="ss-row">
+        <div class="ss-lb">合成聲線<span>沒上傳原聲時才生效</span></div>
         <div class="seg" id="humToneSeg">
           <button data-htone="low" aria-pressed="false">低沉</button>
           <button data-htone="soft" aria-pressed="true">溫柔</button>
@@ -1318,7 +1328,7 @@ body.memo-locked #bkTitle{cursor:default}
         <input class="range" id="humVol" type="range" min="0" max="100" value="65">
         <b class="ss-val" id="humVolVal">65</b>
       </div>
-      <div class="ss-tip">純網頁做不到真正的聲音克隆；這裡用可調聲線合成他的哼唱，小調每次都不一樣。</div>
+      <div class="ss-tip">上傳一段他的哼唱，會直接用他的原聲播放，不用任何 API。沒上傳時才用可調聲線合成；真正的聲音克隆仍需外部服務。</div>
     </div>
 
     <div class="ss-sec">
@@ -3712,7 +3722,53 @@ const Heart = {
    ============================================================ */
 const Hum = {
   ctx: null, master: null, on: false, tone: 'soft', timer: null, noiseBuf: null,
+  sampleEl: null, sampleReady: false, sampleUrl: null, sampleTimer: null,
 
+  hasSample() {
+    const h = (state.settings.sound && state.settings.sound.hum) || {};
+    return !!(h.audioId && h.audioId !== '');
+  },
+  async loadSample(force) {
+    const h = (state.settings.sound && state.settings.sound.hum) || {};
+    if (!h.audioId) return false;
+    if (this.sampleReady && !force) return true;
+    this.stopSample();
+    if (this.sampleUrl) { try { URL.revokeObjectURL(this.sampleUrl); } catch (e) {} this.sampleUrl = null; }
+    let url = '';
+    if (/^https?:/.test(h.audioId)) url = h.audioId;
+    else {
+      const blob = await Media.blobOf(h.audioId);
+      if (!blob) return false;
+      url = URL.createObjectURL(blob);
+      this.sampleUrl = url;
+    }
+    const a = new Audio(url);
+    a.preload = 'auto';
+    a.playsInline = true;
+    a.addEventListener('ended', () => { if (this.on) this.scheduleSample(); });
+    this.sampleEl = a;
+    this.sampleReady = true;
+    this.setVol();
+    return true;
+  },
+  sampleVolume() { return clamp(this.vol() * .9, 0, 1); },
+  playSample() {
+    if (!this.sampleEl) return;
+    try { this.sampleEl.currentTime = 0; this.sampleEl.volume = this.sampleVolume(); this.sampleEl.play().catch(() => {}); } catch (e) {}
+  },
+  scheduleSample() {
+    if (this.sampleTimer) clearTimeout(this.sampleTimer);
+    this.sampleTimer = setTimeout(() => { if (this.on) this.playSample(); }, 2600 + Math.random() * 2600);
+  },
+  stopSample() {
+    if (this.sampleTimer) { clearTimeout(this.sampleTimer); this.sampleTimer = null; }
+    try { if (this.sampleEl) { this.sampleEl.pause(); this.sampleEl.currentTime = 0; } } catch (e) {}
+  },
+  clearSample() {
+    this.stopSample();
+    if (this.sampleUrl) { try { URL.revokeObjectURL(this.sampleUrl); } catch (e) {} this.sampleUrl = null; }
+    this.sampleEl = null; this.sampleReady = false;
+  },
   init() {
     if (this.ctx) return true;
     if (Heart.ctx) this.ctx = Heart.ctx;
@@ -3735,12 +3791,20 @@ const Hum = {
     return clamp((h.vol == null ? 65 : h.vol) / 100, 0, 1);
   },
   async enable() {
+    if (this.previewStop) { clearTimeout(this.previewStop); this.previewStop = null; }
+    this.tone = ((state.settings.sound.hum || {}).tone) || 'soft';
+    if (this.hasSample()) {
+      const ok = await this.loadSample();
+      if (ok) {
+        this.on = true;
+        this.playSample();
+        return true;
+      }
+    }
     if (!this.init()) return false;
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
     if (this.ctx.state !== 'running') return false;
-    if (this.previewStop) { clearTimeout(this.previewStop); this.previewStop = null; }
     this.on = true;
-    this.tone = ((state.settings.sound.hum || {}).tone) || 'soft';
     this.master.gain.cancelScheduledValues(this.ctx.currentTime);
     this.master.gain.linearRampToValueAtTime(clamp(.15 + this.vol() * .75, .05, .9), this.ctx.currentTime + .3);
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
@@ -3749,11 +3813,13 @@ const Hum = {
   },
   disable() {
     this.on = false;
+    this.stopSample();
     if (this.previewStop) { clearTimeout(this.previewStop); this.previewStop = null; }
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     if (this.ctx) { try { this.master.gain.linearRampToValueAtTime(0, this.ctx.currentTime + .25); } catch (e) {} }
   },
   setVol() {
+    if (this.sampleEl) { try { this.sampleEl.volume = this.sampleVolume(); } catch (e) {} }
     if (this.ctx && this.on) {
       try { this.master.gain.linearRampToValueAtTime(clamp(.15 + this.vol() * .75, .05, .9), this.ctx.currentTime + .15); } catch (e) {}
     }
@@ -3825,7 +3891,10 @@ const Hum = {
     const was = this.on;
     const ok = await this.enable();
     if (!ok) return false;
-    if (!was) { this.previewStop = setTimeout(() => this.disable(), 5200); }
+    if (!was) {
+      const dur = this.sampleReady && this.sampleEl && isFinite(this.sampleEl.duration) ? this.sampleEl.duration * 1000 : 0;
+      this.previewStop = setTimeout(() => this.disable(), Math.max(4200, Math.min(12000, dur + 1400)));
+    }
     return true;
   }
 };
@@ -3979,6 +4048,8 @@ function updateSoundUI() {
   if (ht) $$('button', ht).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.htone === (hum.tone || 'soft'))));
   if ($('#humVol')) $('#humVol').value = hum.vol == null ? 65 : hum.vol;
   if ($('#humVolVal')) $('#humVolVal').textContent = hum.vol == null ? 65 : hum.vol;
+  if ($('#humSampleState')) $('#humSampleState').textContent = hum.audioId ? ('原聲：' + (hum.audioName || '已上傳')) : '未上傳，目前是合成哼唱';
+  const hclr = $('#humClear'); if (hclr) hclr.style.display = hum.audioId ? 'inline-flex' : 'none';
   const nz = snd.noise || {};
   const nSw = $('#noiseOn');
   if (nSw) nSw.setAttribute('aria-checked', String(!!nz.on));
@@ -4168,6 +4239,8 @@ function renderSettingsValues() {
   $$('#humToneSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.htone === (hum.tone || 'soft'))));
   if ($('#humVol')) $('#humVol').value = hum.vol == null ? 65 : hum.vol;
   if ($('#humVolVal')) $('#humVolVal').textContent = hum.vol == null ? 65 : hum.vol;
+  if ($('#humSampleState')) $('#humSampleState').textContent = hum.audioId ? ('原聲：' + (hum.audioName || '已上傳')) : '未上傳，目前是合成哼唱';
+  const hclr = $('#humClear'); if (hclr) hclr.style.display = hum.audioId ? 'inline-flex' : 'none';
   const nz = snd.noise || {};
   if ($('#noiseOn')) $('#noiseOn').setAttribute('aria-checked', String(!!nz.on));
   $$('#noiseSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.noise === (nz.type || 'rain'))));
@@ -4798,6 +4871,28 @@ $('#humVol').addEventListener('input', e => {
   state.settings.sound.hum.vol = +e.target.value;
   if ($('#humVolVal')) $('#humVolVal').textContent = e.target.value;
   Hum.setVol(); persist();
+});
+$('#humPick').addEventListener('click', () => $('#humFile').click());
+$('#humFile').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  if (!/^audio\//.test(f.type) && !/\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(f.name)) { toast('請選音檔'); return; }
+  if (f.size > 24 * 1024 * 1024) { toast('音檔太大了，換小一點的'); return; }
+  const h = state.settings.sound.hum || (state.settings.sound.hum = { on: false, tone: 'soft', vol: 65 });
+  const id = await Media.put(f);
+  if (!id) { toast('存不進去，換一個音檔試試'); return; }
+  h.audioId = id; h.audioName = f.name;
+  Hum.clearSample(); await Hum.loadSample(true);
+  if (Hum.on) Hum.playSample();
+  persist(); updateSoundUI();
+  toast('已換成他的原聲');
+  e.target.value = '';
+});
+$('#humClear').addEventListener('click', () => {
+  const h = state.settings.sound.hum || {};
+  h.audioId = ''; h.audioName = '';
+  Hum.clearSample(); Hum.disable(); persist(); updateSoundUI();
+  toast('已清除原聲，回到合成哼唱');
 });
 $('#humTest').addEventListener('click', async () => {
   const ok = await Hum.preview();
