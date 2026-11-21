@@ -1962,6 +1962,7 @@ function compressImage(file, maxSide = 1400, quality = 0.82) {
    ============================================================ */
 const STORE_KEY = 'mengyi.state.v3';
 const LEGACY_KEY = 'mengyi.state.v2';
+const RAW_BACKUP_KEY = 'mengyi.state.v3.raw';
 
 const COVERS = [
   { key: 'rose', name: '玫瑰條紋' },
@@ -2086,7 +2087,9 @@ function migrateState(raw) {
     persona: defaultPersona(),
     settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
-  if (raw.persona && typeof raw.persona === 'object') Object.assign(s.persona, raw.persona);
+  const rawP = (raw.persona && typeof raw.persona === 'object') ? raw.persona : null;
+  const hasP = !!(rawP && (rawP.name || rawP.role || rawP.world || rawP.traits || rawP.relation || rawP.notes));
+  if (hasP) Object.assign(s.persona, rawP);
   else {
     const oldP = (s.books.find(b => b && b.persona) || {}).persona;
     if (oldP) {
@@ -2106,10 +2109,11 @@ function migrateState(raw) {
         tone: oldP.tone || 'steady', vol: 100,
         notes: oldP.notes || oldP.extra || ''
       });
-    }
+    } else if (rawP) Object.assign(s.persona, rawP);
   }
   if (raw.settings) {
     if (raw.settings.cloud) Object.assign(s.settings.cloud, raw.settings.cloud);
+    if (raw.settings.api && typeof raw.settings.api === 'object') Object.assign(s.settings.api, raw.settings.api);
     if (typeof raw.settings.sound === 'boolean') s.settings.sound.on = raw.settings.sound;
     else if (raw.settings.sound && typeof raw.settings.sound === 'object') Object.assign(s.settings.sound, raw.settings.sound);
     if (raw.settings.theme) s.settings.theme = raw.settings.theme;
@@ -2127,6 +2131,7 @@ function loadState() {
   try {
     const cur = localStorage.getItem(STORE_KEY);
     if (cur) {
+      try { if (!localStorage.getItem(RAW_BACKUP_KEY)) localStorage.setItem(RAW_BACKUP_KEY, cur); } catch (e) {}
       const s = migrateState(JSON.parse(cur));
       if (s && s.books.length) return s;
     }
@@ -3796,6 +3801,15 @@ const Heart = {
       });
     } catch (e) { this.buf = null; }
     this.loading = false;
+    try {
+      let peak = 0;
+      const chs = this.buf ? this.buf.numberOfChannels : 0;
+      for (let c = 0; c < chs; c++) {
+        const data = this.buf.getChannelData(c);
+        for (let i = 0; i < data.length; i += 3) peak = Math.max(peak, Math.abs(data[i]));
+      }
+      this.samplePeak = peak || 0;
+    } catch (e) { this.samplePeak = 0; }
   },
   vol() {
     const s = (state.settings && state.settings.sound) || {};
@@ -3808,7 +3822,7 @@ const Heart = {
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
     this.on = true;
     this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(clamp(.5 + this.vol() * 3.0, .2, 6.6), this.ctx.currentTime + 0.25);
+    this.master.gain.linearRampToValueAtTime(clamp(.5 + this.vol() * 3.6, .2, 8.0), this.ctx.currentTime + 0.25);
     this.next = this.ctx.currentTime + 0.2;
     if (!this.timer) this.timer = setInterval(() => this.schedule(), 25);
     if (soundBg()) this.prepareBg();
@@ -3909,7 +3923,7 @@ const Heart = {
     if (this.ctx.state !== 'running') return false;
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
-    this.master.gain.setValueAtTime(clamp(.5 + this.vol() * 3.0, .2, 6.6), t);
+    this.master.gain.setValueAtTime(clamp(.5 + this.vol() * 3.6, .2, 8.0), t);
     for (let i = 0; i < 4; i++) this.beat(t + 0.05 + i * 0.85);
     setTimeout(() => {
       if (!this.on && this.ctx) {
@@ -3938,7 +3952,8 @@ const Heart = {
     src.buffer = this.buf;
     const g = this.ctx.createGain();
     const tone = this.tone();
-    g.gain.value = tone === 'faint' ? 1.25 : (tone === 'light' ? 1.5 : 1.7);
+    const norm = this.samplePeak ? clamp(0.55 / this.samplePeak, 1, 14) : 1;
+    g.gain.value = (tone === 'faint' ? 1.25 : (tone === 'light' ? 1.5 : 1.7)) * norm;
     let node = src;
     if (tone === 'faint') {
       const lp = this.ctx.createBiquadFilter();
@@ -5263,7 +5278,7 @@ $('#setVol').addEventListener('input', e => {
   if ($('#setVolVal')) $('#setVolVal').textContent = state.settings.sound.vol;
   const p = P(); p.vol = state.settings.sound.vol;
   if (Heart.on && Heart.ctx) {
-    try { Heart.master.gain.linearRampToValueAtTime(clamp(.5 + Heart.vol() * 3.0, .2, 6.6), Heart.ctx.currentTime + 0.15); } catch (err) {}
+    try { Heart.master.gain.linearRampToValueAtTime(clamp(.5 + Heart.vol() * 3.6, .2, 8.0), Heart.ctx.currentTime + 0.15); } catch (err) {}
   }
   if (Heart.audioEl) Heart.audioEl.volume = Heart.vol();
   persist();
