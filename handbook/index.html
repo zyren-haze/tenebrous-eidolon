@@ -757,6 +757,73 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
 @media (prefers-reduced-motion:reduce){
   .heart-ico.beat,.beat-heart.beat,.chip-btn .live,.beat-sound .bs-lines i{animation:none!important}
 }
+
+/* ---------- 待辦 · 收集箱 ---------- */
+:root{--todo:#4d6bf6;--todo-ink:#2d49c9;--todo-soft:#e8edff;--ecg:#5aa77e;--ecg-soft:rgba(90,167,126,.12)}
+html[data-theme="dark"]{--todo:#91a3ff;--todo-ink:#c3cdff;--todo-soft:#202944;--ecg:#8fd3ad;--ecg-soft:rgba(143,211,173,.10)}
+#todoView{overflow:auto;touch-action:pan-y;background:var(--ui);padding:22px clamp(16px,4vw,44px) 108px}
+.todo-wrap{max-width:1000px;margin:0 auto}
+.todo-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.todo-title h1{font-size:clamp(24px,3.4vw,34px);font-weight:600;letter-spacing:.06em}
+.todo-title p{margin:7px 0 0;font-size:12px;color:var(--ui-ink-3);letter-spacing:.04em}
+.todo-head-tools{display:flex;align-items:center;gap:8px}
+.todo-mode-btn{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--ui-line-2);background:var(--ui-2);font-size:12px;color:var(--ui-ink-2);white-space:nowrap}
+.todo-mode-btn:hover{border-color:var(--todo);color:var(--todo-ink)}
+.todo-add-top{width:34px;height:34px;border-radius:50%;background:var(--todo);color:#fff;display:grid;place-items:center;font-size:20px;line-height:1;box-shadow:0 8px 18px rgba(77,107,246,.24)}
+.todo-add-top:hover{filter:brightness(1.05)}
+.todo-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 16px;scrollbar-width:none}
+.todo-tabs::-webkit-scrollbar{display:none}
+.todo-tab{flex:0 0 auto;height:34px;padding:0 14px;border-radius:999px;border:1px solid transparent;background:transparent;font-size:12px;letter-spacing:.04em;color:var(--ui-ink-3);display:inline-flex;align-items:center;gap:7px}
+.todo-tab[aria-current="true"]{background:var(--todo-soft);color:var(--todo-ink);border-color:color-mix(in srgb,var(--todo) 28%,transparent)}
+.todo-tab .todo-count{font-size:10px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--ui-3);display:inline-grid;place-items:center;color:var(--ui-ink-3);font-variant-numeric:tabular-nums}
+.todo-tab[aria-current="true"] .todo-count{background:color-mix(in srgb,var(--todo) 14%,transparent);color:var(--todo-ink)}
+.todo-body{min-height:220px}
+.todo-list{display:flex;flex-direction:column;gap:10px}
+.todo-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 14px;border:1px solid var(--ui-line);border-radius:16px;background:var(--ui-2);box-shadow:0 3px 12px rgba(42,49,60,.04);transition:.18s var(--ease)}
+.todo-row:hover{border-color:color-mix(in srgb,var(--todo) 30%,var(--ui-line));transform:translateY(-1px)}
+.todo-check{width:24px;height:24px;flex:0 0 auto;border-radius:8px;border:1px solid var(--ui-line-2);background:var(--ui-2);display:grid;place-items:center;color:transparent;transition:.18s}
+.todo-check svg{width:14px;height:14px}
+.todo-check.done{background:var(--todo);border-color:var(--todo);color:#fff}
+.todo-main{min-width:0;flex:1;cursor:pointer}
+.todo-main b{display:block;font-size:14px;font-weight:500;line-height:1.5;letter-spacing:.02em;word-break:break-word}
+.todo-main.done b{color:var(--ui-ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+.todo-meta{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:10.5px;color:var(--ui-ink-3);flex-wrap:wrap}
+.todo-meta .td-date{color:var(--ui-ink-2)}
+.todo-meta .td-daily{color:var(--todo-ink)}
+.todo-meta .td-quad{padding:1px 6px;border-radius:999px;background:var(--ui-3)}
+.todo-note-dot{width:26px;height:26px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;color:var(--ui-ink-3);background:var(--ui-3)}
+.todo-note-dot svg{width:13px;height:13px}
+.todo-empty{padding:54px 20px;text-align:center;color:var(--ui-ink-3);font-size:12px;line-height:2;border:1px dashed var(--ui-line-2);border-radius:18px;background:color-mix(in srgb,var(--ui-2) 65%,transparent)}
+.todo-empty strong{display:block;color:var(--ui-ink-2);font-size:15px;font-weight:500;letter-spacing:.06em;margin-bottom:4px}
+.todo-quad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.todo-q{border:1px solid var(--ui-line);border-radius:16px;background:var(--ui-2);padding:12px;min-height:190px;display:flex;flex-direction:column;gap:8px}
+.todo-q.q1{border-top:3px solid #d96a6a}.todo-q.q2{border-top:3px solid #d4a24c}.todo-q.q3{border-top:3px solid #6b8fd6}.todo-q.q4{border-top:3px solid #6aa58a}
+.todo-q-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;letter-spacing:.05em}
+.todo-q-head i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;background:#d96a6a}
+.todo-q.q2 .todo-q-head i{background:#d4a24c}.todo-q.q3 .todo-q-head i{background:#6b8fd6}.todo-q.q4 .todo-q-head i{background:#6aa58a}
+.todo-q-head span{margin-left:auto;font-size:10px;font-weight:400;color:var(--ui-ink-3)}
+.todo-q-list{display:flex;flex-direction:column;gap:7px;flex:1}
+.todo-q-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;background:var(--ui-3);cursor:pointer}
+.todo-q-row .todo-check{width:20px;height:20px;border-radius:7px}
+.todo-q-row .todo-check svg{width:12px;height:12px}
+.todo-q-row b{font-size:12px;font-weight:500;line-height:1.4;word-break:break-word}
+.todo-q-row.done b{color:var(--ui-ink-3);text-decoration:line-through}
+.todo-q-empty{font-size:11px;color:var(--ui-ink-3);padding:10px 2px}
+.todo-fab{position:fixed;right:clamp(18px,4vw,48px);bottom:28px;z-index:20;width:56px;height:56px;border-radius:50%;background:var(--todo);color:#fff;display:grid;place-items:center;font-size:28px;line-height:1;box-shadow:0 12px 26px rgba(77,107,246,.34);transition:.2s}
+.todo-fab:hover{transform:scale(1.04)}
+.todo-modal-note{font-size:11px;line-height:1.7;color:var(--ui-ink-3);margin-top:-4px}
+.todo-delete{color:#b35d62}
+@media (max-width:600px){
+  #todoView{padding:18px 14px 104px}
+  .todo-head{align-items:center}
+  .todo-head-tools .todo-mode-btn{padding:0 11px}
+  .todo-fab{right:18px;bottom:22px;width:52px;height:52px}
+}
+/* ---------- 心電監視 ---------- */
+.ecg-wrap,.beat-ecg{background:linear-gradient(180deg,var(--ecg-soft),transparent 82%);}
+
+.tbtn .lbl{white-space:nowrap}
+@media (max-width:600px){ #soundBtn .lbl{display:none} #settingsBtn{padding:0 9px} }
 /* === CSS-END === */
 
 /* 文字空稿佔位 */
@@ -802,7 +869,7 @@ html[data-theme="dark"] #himView{background:radial-gradient(90% 60% at 50% 0%,#3
 .ss-mini:hover{border-color:var(--rose);color:var(--rose-2)}
 .brand-mini{display:none;font-family:var(--display);font-size:14px;letter-spacing:.1em;color:var(--ui-ink);white-space:nowrap}
 
-@media (max-width:600px){ .brand-mini{display:inline} .brand{gap:6px} #soundBtn .lbl{display:inline;font-size:11px} }
+@media (max-width:600px){ .brand-mini{display:inline} .brand{gap:6px} #soundBtn .lbl{display:none} }
 @media (max-width:360px){ #soundBtn .lbl{display:none} }
 
 .tbtn#soundBtn[aria-pressed="true"]{background:var(--rose-soft);border-color:#e7c7cb;color:#8e5c65}
@@ -1021,6 +1088,7 @@ body.memo-locked #bkTitle{cursor:default}
   </div>
   <nav class="nav" id="nav">
     <button data-nav="shelf" aria-current="true">備忘</button>
+    <button data-nav="todo">待辦</button>
     <button data-nav="him">他</button>
   </nav>
   <div class="top-actions">
@@ -1244,6 +1312,26 @@ body.memo-locked #bkTitle{cursor:default}
   </div>
 </section>
 
+
+<!-- ===== 待辦 · 收集箱 ===== -->
+<section class="view hidden" id="todoView">
+  <div class="todo-wrap">
+    <div class="todo-head">
+      <div class="todo-title">
+        <h1 id="todoTitle">收集箱</h1>
+        <p id="todoSub">把要做的事先放進來，再分到四象限。</p>
+      </div>
+      <div class="todo-head-tools">
+        <button class="todo-mode-btn" id="todoModeBtn">四象限</button>
+        <button class="todo-add-top" id="todoAddTop" aria-label="新增待辦">＋</button>
+      </div>
+    </div>
+    <div class="todo-tabs" id="todoTabs"></div>
+    <div class="todo-body" id="todoBody"></div>
+  </div>
+  <button class="todo-fab" id="todoFab" aria-label="新增待辦">＋</button>
+</section>
+
 <!-- ===== 設定抽屜 ===== -->
 <div class="sheet-mask" id="sheetMask"></div>
 <aside class="settings-sheet" id="settingsSheet" aria-hidden="true">
@@ -1278,8 +1366,8 @@ body.memo-locked #bkTitle{cursor:default}
       <div class="ss-tip" id="soundHint" hidden>若無聲，請關閉 iPhone 側邊靜音鍵；心跳屬環境音，會被靜音鍵攔下。</div>
       <div class="ss-row">
         <div class="ss-lb">音量</div>
-        <input class="range" id="setVol" type="range" min="0" max="160" value="140">
-        <b class="ss-val" id="setVolVal">140</b>
+        <input class="range" id="setVol" type="range" min="0" max="200" value="180">
+        <b class="ss-val" id="setVolVal">180</b>
       </div>
       <div class="ss-row">
         <div class="ss-lb">音色<span>依他的體質與性格挑一個</span></div>
@@ -1293,7 +1381,7 @@ body.memo-locked #bkTitle{cursor:default}
         <div class="ss-lb">切後台也響<span>離開頁面、鎖屏後仍用心跳陪你</span></div>
         <button class="switch" id="setBgHeart" role="switch" aria-checked="true"><i></i></button>
       </div>
-      <div class="ss-tip">後台播放靠手機媒體通道；省電模式可能把它停掉。音量已預設 140%。</div>
+      <div class="ss-tip">後台播放靠手機媒體通道；省電模式可能把它停掉。音量已預設 180%。</div>
     </div>
 
     <div class="ss-sec">
@@ -1640,6 +1728,49 @@ body.memo-locked #bkTitle{cursor:default}
   </div>
 </div>
 
+
+<!-- ===== 彈窗：待辦 ===== -->
+<div class="modal" id="todoModal">
+  <div class="mask" data-close="todoModal"></div>
+  <div class="sheet">
+    <div class="sheet-head">
+      <div><h2 id="tdTitle">新增待辦</h2><p>先放進收集箱，之後再慢慢排。</p></div>
+      <button class="x-btn" data-close="todoModal">✕</button>
+    </div>
+    <div class="field"><label>要做什麼</label><input id="tdText" maxlength="60" placeholder="例如：回診、交作業、去超市"></div>
+    <div class="field-row">
+      <div class="field"><label>分類</label><select id="tdCat">
+        <option value="inbox">未分組</option>
+        <option value="daily">日常日程</option>
+        <option value="long">長久計劃</option>
+        <option value="future">未來重要時間</option>
+        <option value="burst">每日突發</option>
+      </select></div>
+      <div class="field"><label>四象限</label><select id="tdQuad">
+        <option value="1">I · 重要且緊急</option>
+        <option value="2">II · 重要不緊急</option>
+        <option value="3">III · 不重要但緊急</option>
+        <option value="4">IV · 不重要不緊急</option>
+      </select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>日期（可選）</label><input id="tdDate" type="date"></div>
+      <div class="field"><label>每天重複</label>
+        <button class="switch" id="tdDaily" role="switch" aria-checked="false"><i></i></button>
+      </div>
+    </div>
+    <div class="field"><label>備註（可選）</label><textarea id="tdNote" rows="3" maxlength="200" placeholder="補充一句，讓自己記得為什麼要做"></textarea></div>
+    <p class="todo-modal-note">每日重複的待辦會在隔天自動回到未完成；四象限只是一個分類，不會替你排先後。</p>
+    <div class="sheet-foot">
+      <button class="btn ghost todo-delete hidden" id="tdDelete">刪除</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn ghost" data-close="todoModal">取消</button>
+        <button class="btn primary" id="tdSave">放進收集箱</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="confirmModal">
   <div class="mask" data-close="confirmModal"></div>
   <div class="sheet" style="width:min(360px,100%)">
@@ -1871,7 +2002,7 @@ const defaultPersona = () => ({
   traits: '', mood: '平静', withYou: '', underPressure: '',
   baseHr: 66, baseBr: 14, sys: 116, dia: 75, hrMin: 52, hrMax: 132,
   breathStyle: '正常', body: '健康', temp: 36.6,
-  tone: 'steady', vol: 140, audioUrl: '',
+  tone: 'steady', vol: 180, audioUrl: '',
   notes: ''
 });
 
@@ -1893,6 +2024,37 @@ function newBook(opt) {
   };
 }
 
+const TODO_CATS = {
+  inbox: { label: '未分組', short: '收集' },
+  daily: { label: '日常日程', short: '日常' },
+  long: { label: '長久計劃', short: '長遠' },
+  future: { label: '未來重要時間', short: '未來' },
+  burst: { label: '每日突發', short: '突發' }
+};
+const TODO_QUADS = {
+  1: { label: '重要且緊急', roman: 'I', cls: 'q1' },
+  2: { label: '重要不緊急', roman: 'II', cls: 'q2' },
+  3: { label: '不重要但緊急', roman: 'III', cls: 'q3' },
+  4: { label: '不重要不緊急', roman: 'IV', cls: 'q4' }
+};
+function normalizeTodos(raw) {
+  return (Array.isArray(raw) ? raw : []).map(t => {
+    if (!t || !t.id) return null;
+    return {
+      id: String(t.id),
+      title: String(t.title || '').slice(0, 80),
+      cat: TODO_CATS[t.cat] ? t.cat : 'inbox',
+      quad: [1, 2, 3, 4].indexOf(Number(t.quad)) >= 0 ? Number(t.quad) : 2,
+      date: typeof t.date === 'string' ? t.date.slice(0, 10) : '',
+      daily: !!t.daily,
+      note: String(t.note || '').slice(0, 240),
+      done: !!t.done,
+      doneDate: typeof t.doneDate === 'string' ? t.doneDate : '',
+      createdAt: t.createdAt || nowISO()
+    };
+  }).filter(Boolean);
+}
+
 let state = null;
 
 function initialState() {
@@ -1908,7 +2070,8 @@ function initialState() {
     activeBookId: null,
     persona: defaultPersona(),
     anniversaries: [],
-    settings: { theme: 'auto', sound: { on: true, vol: 140, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
+    todos: [],
+    settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
 }
 
@@ -1919,8 +2082,9 @@ function migrateState(raw) {
     books: Array.isArray(raw.books) ? raw.books : [],
     activeBookId: raw.activeBookId || null,
     anniversaries: Array.isArray(raw.anniversaries) ? raw.anniversaries : [],
+    todos: normalizeTodos(raw.todos),
     persona: defaultPersona(),
-    settings: { theme: 'auto', sound: { on: true, vol: 140, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
+    settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
   if (raw.persona && typeof raw.persona === 'object') Object.assign(s.persona, raw.persona);
   else {
@@ -1988,7 +2152,7 @@ function getState() {
     state.settings.api = { on: false, url: '', model: '', key: '', sec: 8 };
   }
   if (!state.settings.sound || typeof state.settings.sound !== 'object') {
-    state.settings.sound = { on: !!state.settings.sound, vol: 140, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } };
+    state.settings.sound = { on: !!state.settings.sound, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } };
   }
   const snd = state.settings.sound;
   if (snd.bg == null) snd.bg = true;
@@ -1996,6 +2160,7 @@ function getState() {
   if (!snd.noise || typeof snd.noise !== 'object') snd.noise = { on: false, type: 'rain', vol: 25 };
   (state.books || []).forEach(b => (b.pages || []).forEach(pg => { if (pg.locked == null) pg.locked = true; }));
   if (!Array.isArray(state.anniversaries)) state.anniversaries = [];
+  state.todos = normalizeTodos(state.todos);
   // v4 / v6：把舊版偏小的預設音量拉高一次，之後尊重使用者自己調的值
   if (state.settings.sound && !state.settings.sound.boost4) {
     state.settings.sound.vol = 100;
@@ -2008,6 +2173,10 @@ function getState() {
   if (state.settings.sound && !state.settings.sound.boost7) {
     state.settings.sound.vol = 140;
     state.settings.sound.boost7 = true;
+  }
+  if (state.settings.sound && !state.settings.sound.boost8) {
+    state.settings.sound.vol = 180;
+    state.settings.sound.boost8 = true;
   }
   return state;
 }
@@ -2285,6 +2454,7 @@ function openBook(id, atPage) {
   state.activeBookId = id;
   $('#shelfView').classList.add('hidden');
   $('#himView').classList.add('hidden');
+  $('#todoView').classList.add('hidden');
   $('#bookView').classList.remove('hidden');
   document.body.classList.add('mode-book');
   $$('#nav button').forEach(b => b.removeAttribute('aria-current'));
@@ -3458,15 +3628,38 @@ function fitCanvas(cv) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { ctx, w, h };
 }
-function ecgShape(p) {
-  const g = (c, wid, amp) => amp * Math.exp(-Math.pow((p - c) / wid, 2));
+let ecgPlans = [], ecgPlanHr = 0;
+
+function ensureEcgPlans(hr, now) {
+  if (!ecgPlans.length) {
+    ecgPlans.push({ t: now - 15, amp: 1, dur: 0.68, idx: 0 });
+    ecgPlanHr = hr;
+  }
+  while (ecgPlans[ecgPlans.length - 1].t < now + 1.6) {
+    const last = ecgPlans[ecgPlans.length - 1];
+    const idx = last.idx + 1;
+    const base = 60 / clamp(hr, 40, 160);
+    // 呼吸性竇性心律不整：吸氣稍快、呼氣稍慢，再加一點逐搏抖動，避免像節拍器
+    const rr = base * (1 + 0.052 * Math.sin(idx * 1.73) + 0.018 * Math.sin(idx * 0.41) + (Math.random() - .5) * .024);
+    const amp = 1 + 0.10 * Math.sin(idx * 0.93) + (Math.random() - .5) * .055;
+    const dur = clamp(base * 0.74, .44, .82);
+    ecgPlans.push({ t: last.t + rr, amp, dur, idx });
+  }
+  while (ecgPlans.length > 1 && ecgPlans[0].t < now - 20) ecgPlans.shift();
+  if (Math.abs(ecgPlanHr - hr) > 2) ecgPlanHr = hr;
+}
+
+function ecgShape(p, amp) {
+  if (p < -0.12 || p > 1.18) return 0;
+  const g = (c, wid, a) => a * Math.exp(-Math.pow((p - c) / wid, 2));
   let v = 0;
-  v += g(0.16, 0.045, 0.22);
-  v -= g(0.285, 0.014, 0.26);
-  v += g(0.33, 0.018, 1.0);
-  v -= g(0.375, 0.014, 0.34);
-  v += g(0.55, 0.075, 0.28);
-  return clamp(v, -1, 1);
+  v += g(0.105, 0.030, 0.12);   // P
+  v -= g(0.205, 0.017, 0.14);   // Q
+  v += g(0.238, 0.010, 1.03);   // R
+  v -= g(0.278, 0.015, 0.34);   // S
+  v += g(0.455, 0.066, 0.25);   // T
+  v += g(0.625, 0.028, 0.055);  // 小 U
+  return clamp(v * (amp || 1), -1.1, 1.15);
 }
 
 function drawECGOn(cv, ts, big) {
@@ -3475,30 +3668,58 @@ function drawECGOn(cv, ts, big) {
   const { ctx, w, h } = f;
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   ctx.clearRect(0, 0, w, h);
-  ctx.strokeStyle = dark ? 'rgba(215,155,165,.12)' : 'rgba(176,109,121,.12)';
+
+  // 醫院監視器的細格 + 每五格一條粗線
+  const small = big ? 8 : 6, major = small * 5;
   ctx.lineWidth = 1;
-  const grid = big ? 26 : 20;
-  for (let x = 0; x < w; x += grid) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-  for (let y = 0; y < h; y += grid) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  ctx.strokeStyle = dark ? 'rgba(143,211,173,.08)' : 'rgba(90,167,126,.09)';
+  for (let x = 0; x < w; x += small) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += small) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  ctx.strokeStyle = dark ? 'rgba(143,211,173,.15)' : 'rgba(90,167,126,.16)';
+  for (let x = 0; x < w; x += major) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += major) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
   const hr = Math.max(42, vitalsSmooth ? vitalsSmooth.hr : 72);
-  const period = 60 / hr;
-  const speed = big ? 34 : 24;
+  const speed = big ? 36 : 25;
   const t = ts / 1000;
+  ensureEcgPlans(hr, t);
+  const baseline = h * 0.60;
+
   ctx.beginPath();
   for (let x = 0; x <= w; x += 1) {
-    const back = (w - x) / speed;
-    let phase = ((t - back) / period) % 1;
-    if (phase < 0) phase += 1;
-    const v = ecgShape(phase);
-    const y = h * 0.62 - v * h * (big ? 0.55 : 0.52);
+    const time = t - (w - x) / speed;
+    let v = 0;
+    for (let i = 0; i < ecgPlans.length; i++) {
+      const b = ecgPlans[i];
+      const phase = (time - b.t) / b.dur;
+      if (phase > -0.15 && phase < 1.2) v += ecgShape(phase, b.amp);
+    }
+    // 基线漂移 + 很轻的肌电噪声，讓每一段都不完全一樣
+    v += 0.018 * Math.sin(time * 1.25 + 0.6) + 0.005 * Math.sin(time * 7.4) + 0.003 * Math.sin(time * 31.7);
+    const y = baseline - v * h * (big ? 0.62 : 0.56);
     if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  ctx.strokeStyle = dark ? 'rgba(226,150,162,.95)' : 'rgba(176,94,110,.92)';
-  ctx.lineWidth = big ? 1.9 : 1.6;
+  ctx.strokeStyle = dark ? 'rgba(160,231,190,.96)' : 'rgba(70,148,108,.95)';
+  ctx.lineWidth = big ? 2.0 : 1.7;
+  ctx.shadowColor = dark ? 'rgba(143,211,173,.55)' : 'rgba(90,167,126,.45)';
+  ctx.shadowBlur = big ? 6 : 4;
   ctx.stroke();
-  ctx.fillStyle = dark ? 'rgba(238,226,202,.85)' : 'rgba(61,51,44,.6)';
-  ctx.beginPath(); ctx.arc(w - 2, h * 0.62, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // 右側掃描點
+  ctx.fillStyle = dark ? 'rgba(220,255,235,.95)' : 'rgba(53,128,88,.95)';
+  ctx.beginPath(); ctx.arc(w - 2, baseline, big ? 2.2 : 1.8, 0, Math.PI * 2); ctx.fill();
+
+  // 左側校準小脈衝，像床邊監視器
+  if (big) {
+    ctx.strokeStyle = dark ? 'rgba(143,211,173,.38)' : 'rgba(90,167,126,.34)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(4, baseline + h * .16); ctx.lineTo(10, baseline + h * .16);
+    ctx.lineTo(10, baseline - h * .12); ctx.lineTo(16, baseline - h * .12);
+    ctx.lineTo(16, baseline + h * .16); ctx.lineTo(22, baseline + h * .16);
+    ctx.stroke();
+  }
 }
 
 function startECG() {
@@ -3578,7 +3799,7 @@ const Heart = {
   },
   vol() {
     const s = (state.settings && state.settings.sound) || {};
-    return clamp((s.vol == null ? 140 : s.vol) / 100, 0, 1.6);
+    return clamp((s.vol == null ? 180 : s.vol) / 100, 0, 2.0);
   },
   tone() { return P().tone || (state.settings.sound && state.settings.sound.tone) || 'steady'; },
 
@@ -3587,7 +3808,7 @@ const Heart = {
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch (e) {} }
     this.on = true;
     this.master.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.master.gain.linearRampToValueAtTime(clamp(.4 + this.vol() * 2.8, .2, 4.8), this.ctx.currentTime + 0.25);
+    this.master.gain.linearRampToValueAtTime(clamp(.5 + this.vol() * 3.0, .2, 6.6), this.ctx.currentTime + 0.25);
     this.next = this.ctx.currentTime + 0.2;
     if (!this.timer) this.timer = setInterval(() => this.schedule(), 25);
     if (soundBg()) this.prepareBg();
@@ -3688,7 +3909,7 @@ const Heart = {
     if (this.ctx.state !== 'running') return false;
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
-    this.master.gain.setValueAtTime(clamp(.4 + this.vol() * 2.8, .2, 4.8), t);
+    this.master.gain.setValueAtTime(clamp(.5 + this.vol() * 3.0, .2, 6.6), t);
     for (let i = 0; i < 4; i++) this.beat(t + 0.05 + i * 0.85);
     setTimeout(() => {
       if (!this.on && this.ctx) {
@@ -3717,7 +3938,7 @@ const Heart = {
     src.buffer = this.buf;
     const g = this.ctx.createGain();
     const tone = this.tone();
-    g.gain.value = tone === 'faint' ? .78 : (tone === 'light' ? .95 : 1);
+    g.gain.value = tone === 'faint' ? 1.25 : (tone === 'light' ? 1.5 : 1.7);
     let node = src;
     if (tone === 'faint') {
       const lp = this.ctx.createBiquadFilter();
@@ -4042,7 +4263,7 @@ function updateSoundUI() {
   if (setSw) setSw.setAttribute('aria-checked', String(on));
   const setVol = $('#setVol');
   if (setVol && state.settings.sound.vol != null) setVol.value = state.settings.sound.vol;
-  if ($('#setVolVal')) $('#setVolVal').textContent = (state.settings.sound.vol == null ? 140 : state.settings.sound.vol);
+  if ($('#setVolVal')) $('#setVolVal').textContent = (state.settings.sound.vol == null ? 180 : state.settings.sound.vol);
   const toneSeg = $('#toneSeg');
   if (toneSeg) $$('button', toneSeg).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tone === ((P().tone) || 'steady'))));
   const snd = state.settings.sound || {};
@@ -4175,7 +4396,7 @@ function savePersona() {
   p.breathStyle = $('#pBreath').value;
   p.body = $('#pBody').value;
   p.tone = $('#pTone').value;
-  p.vol = clamp(Number($('#pVol').value) || 140, 0, 160);
+  p.vol = clamp(Number($('#pVol').value) || 180, 0, 200);
   p.audioUrl = ($('#pAudioUrl').value || '').trim();
   p.notes = ($('#pNotes').value || '').trim();
 
@@ -4244,8 +4465,8 @@ function closeSettings() {
 function renderSettingsValues() {
   $$('#themeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeVal === ((state.settings && state.settings.theme) || 'auto'))));
   $('#setSound').setAttribute('aria-checked', String(soundOn()));
-  $('#setVol').value = state.settings.sound.vol == null ? 140 : state.settings.sound.vol;
-  if ($('#setVolVal')) $('#setVolVal').textContent = state.settings.sound.vol == null ? 140 : state.settings.sound.vol;
+  $('#setVol').value = state.settings.sound.vol == null ? 180 : state.settings.sound.vol;
+  if ($('#setVolVal')) $('#setVolVal').textContent = state.settings.sound.vol == null ? 180 : state.settings.sound.vol;
   const snd = state.settings.sound || {};
   if ($('#setBgHeart')) $('#setBgHeart').setAttribute('aria-checked', String(snd.bg !== false));
   const hum = snd.hum || {};
@@ -4291,6 +4512,7 @@ function showShelf() {
   document.body.classList.remove('mode-book');
   $('#bookView').classList.add('hidden');
   $('#himView').classList.add('hidden');
+  $('#todoView').classList.add('hidden');
   $('#shelfView').classList.remove('hidden');
   setNav('shelf');
   renderShelf();
@@ -4301,12 +4523,162 @@ function showHim() {
   currentBookId = null;
   $('#shelfView').classList.add('hidden');
   $('#bookView').classList.add('hidden');
+  $('#todoView').classList.add('hidden');
   $('#himView').classList.remove('hidden');
   setNav('him');
   renderHim();
   vitalsTarget = computeTarget();
   tickVitals();
   startVitals();
+}
+
+/* ============================================================
+   22.5 待辦 · 收集箱
+   ============================================================ */
+let todoCat = 'daily', todoMode = 'list', todoEditingId = null, todoDaily = false;
+
+function todoIsDone(t) {
+  return t.daily ? t.doneDate === todayKey() : !!t.done;
+}
+function todoDateLabel(t) {
+  if (t.daily) return '每天';
+  if (!t.date) return '未定';
+  const m = t.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return t.date;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - today) / 86400000);
+  if (diff === 0) return '今天';
+  if (diff === 1) return '明天';
+  if (diff === -1) return '昨天';
+  if (diff < 0) return '已過 ' + (+m[2]) + '.' + (+m[3]);
+  return (+m[2]) + '.' + (+m[3]);
+}
+function todoSort(a, b) {
+  const ad = todoIsDone(a), bd = todoIsDone(b);
+  if (ad !== bd) return ad ? 1 : -1;
+  if (a.date && b.date && a.date !== b.date) return a.date < b.date ? -1 : 1;
+  if (a.date && !b.date) return -1;
+  if (!a.date && b.date) return 1;
+  return String(a.createdAt).localeCompare(String(b.createdAt));
+}
+function todoRowHtml(t) {
+  const done = todoIsDone(t), q = TODO_QUADS[t.quad] || TODO_QUADS[2];
+  const date = todoDateLabel(t);
+  return '<div class="todo-row" data-todo-open="' + esc(t.id) + '">' +
+    '<button class="todo-check' + (done ? ' done' : '') + '" data-todo-check="' + esc(t.id) + '" aria-label="' + (done ? '標為未完成' : '完成') + '">' +
+      '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></button>' +
+    '<div class="todo-main' + (done ? ' done' : '') + '">' +
+      '<b>' + esc(t.title) + '</b>' +
+      '<div class="todo-meta"><span class="td-date">' + esc(date) + '</span>' +
+        '<span class="td-quad">' + q.roman + ' · ' + q.label + '</span></div>' +
+    '</div>' +
+    (t.note ? '<button class="todo-note-dot" data-todo-open="' + esc(t.id) + '" aria-label="查看備註" title="' + esc(t.note) + '"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4V5z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="1.2"/></svg></button>' : '') +
+  '</div>';
+}
+function todoQRows(tasks, q) {
+  const qs = tasks.filter(t => t.quad === q).sort(todoSort);
+  if (!qs.length) return '<div class="todo-q-empty">這裡還空著</div>';
+  return qs.map(t => {
+    const done = todoIsDone(t);
+    return '<div class="todo-q-row' + (done ? ' done' : '') + '" data-todo-open="' + esc(t.id) + '">' +
+      '<button class="todo-check' + (done ? ' done' : '') + '" data-todo-check="' + esc(t.id) + '" aria-label="完成">' +
+        '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></button>' +
+      '<b>' + esc(t.title) + '</b></div>';
+  }).join('');
+}
+function renderTodo() {
+  if (!$('#todoBody')) return;
+  const tabs = $('#todoTabs');
+  if (tabs) {
+    tabs.innerHTML = Object.keys(TODO_CATS).map(k => {
+      const n = (state.todos || []).filter(t => t.cat === k && !todoIsDone(t)).length;
+      return '<button class="todo-tab" data-todo-cat="' + k + '"' + (todoCat === k ? ' aria-current="true"' : '') + '>' +
+        TODO_CATS[k].label + '<span class="todo-count">' + n + '</span></button>';
+    }).join('');
+    tabs.classList.toggle('hidden', todoMode === 'quad');
+  }
+  const cat = TODO_CATS[todoCat] || TODO_CATS.daily;
+  const all = (state.todos || []).slice().sort(todoSort);
+  const tasks = todoMode === 'quad' ? all : all.filter(t => t.cat === todoCat);
+  const pending = tasks.filter(t => !todoIsDone(t)).length;
+  if ($('#todoTitle')) $('#todoTitle').textContent = todoMode === 'quad' ? '四象限' : '收集箱';
+  if ($('#todoSub')) $('#todoSub').textContent = (todoMode === 'quad' ? '全部待辦' : cat.label) + ' · ' + pending + ' 件未完成';
+  if ($('#todoModeBtn')) $('#todoModeBtn').textContent = todoMode === 'quad' ? '清單' : '四象限';
+  const body = $('#todoBody');
+  if (todoMode === 'quad') {
+    body.innerHTML = '<div class="todo-quad">' + [1, 2, 3, 4].map(q => {
+      const meta = TODO_QUADS[q];
+      const n = tasks.filter(t => t.quad === q && !todoIsDone(t)).length;
+      return '<section class="todo-q ' + meta.cls + '"><div class="todo-q-head"><i>' + meta.roman + '</i>' + meta.label + '<span>' + n + '</span></div><div class="todo-q-list">' + todoQRows(tasks, q) + '</div></section>';
+    }).join('') + '</div>';
+  } else {
+    body.innerHTML = tasks.length
+      ? '<div class="todo-list">' + tasks.map(todoRowHtml).join('') + '</div>'
+      : '<div class="todo-empty"><strong>收集箱還空著</strong>把一件小事放進來，<br>不用先想它重不重要。</div>';
+  }
+}
+function setTodoSwitch(el, on) {
+  if (el) el.setAttribute('aria-checked', on ? 'true' : 'false');
+}
+function openTodoModal(id) {
+  const t = id ? (state.todos || []).find(x => x.id === id) : null;
+  todoEditingId = t ? t.id : null;
+  todoDaily = t ? !!t.daily : false;
+  $('#tdTitle').textContent = t ? '編輯待辦' : '新增待辦';
+  $('#tdSave').textContent = t ? '保存' : '放進收集箱';
+  $('#tdText').value = t ? t.title : '';
+  $('#tdCat').value = t ? t.cat : (TODO_CATS[todoCat] ? todoCat : 'daily');
+  $('#tdQuad').value = t ? String(t.quad) : '2';
+  $('#tdDate').value = t ? (t.date || '') : todayKey();
+  $('#tdNote').value = t ? t.note : '';
+  setTodoSwitch($('#tdDaily'), todoDaily);
+  $('#tdDelete').classList.toggle('hidden', !t);
+  openModal('todoModal');
+  setTimeout(() => { try { $('#tdText').focus(); } catch (e) {} }, 180);
+}
+function saveTodo() {
+  const title = $('#tdText').value.trim();
+  if (!title) { toast('先寫下要做什麼'); $('#tdText').focus(); return; }
+  const cat = TODO_CATS[$('#tdCat').value] ? $('#tdCat').value : 'inbox';
+  const quad = [1, 2, 3, 4].indexOf(Number($('#tdQuad').value)) >= 0 ? Number($('#tdQuad').value) : 2;
+  const date = $('#tdDate').value || '';
+  const note = $('#tdNote').value.trim();
+  let t = todoEditingId ? (state.todos || []).find(x => x.id === todoEditingId) : null;
+  if (t) {
+    Object.assign(t, { title, cat, quad, date, note, daily: todoDaily });
+  } else {
+    t = { id: uid('td'), title, cat, quad, date, note, daily: todoDaily, done: false, doneDate: '', createdAt: nowISO() };
+    state.todos.push(t);
+  }
+  todoEditingId = null;
+  persist();
+  closeModal($('#todoModal'));
+  renderTodo();
+  toast(t.daily ? '已放進收集箱 · 每天重複' : '已放進收集箱');
+}
+function toggleTodo(id) {
+  const t = (state.todos || []).find(x => x.id === id);
+  if (!t) return;
+  if (t.daily) {
+    if (t.doneDate === todayKey()) { t.doneDate = ''; t.done = false; }
+    else { t.doneDate = todayKey(); t.done = true; }
+  } else {
+    t.done = !t.done;
+  }
+  persist();
+  renderTodo();
+}
+function showTodo() {
+  commitEdit();
+  currentBookId = null;
+  document.body.classList.remove('mode-book');
+  $('#shelfView').classList.add('hidden');
+  $('#bookView').classList.add('hidden');
+  $('#himView').classList.add('hidden');
+  $('#todoView').classList.remove('hidden');
+  setNav('todo');
+  renderTodo();
 }
 
 /* ============================================================
@@ -4771,8 +5143,52 @@ $('#nav').addEventListener('click', e => {
   const b = e.target.closest('[data-nav]');
   if (!b) return;
   if (b.dataset.nav === 'shelf') showShelf();
+  else if (b.dataset.nav === 'todo') showTodo();
   else if (b.dataset.nav === 'him') showHim();
 });
+/* 待辦 · 收集箱 */
+$('#todoTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-todo-cat]');
+  if (!b) return;
+  todoCat = b.dataset.todoCat;
+  renderTodo();
+});
+$('#todoModeBtn').addEventListener('click', () => {
+  todoMode = todoMode === 'quad' ? 'list' : 'quad';
+  renderTodo();
+});
+$('#todoAddTop').addEventListener('click', () => openTodoModal(null));
+$('#todoFab').addEventListener('click', () => openTodoModal(null));
+$('#todoBody').addEventListener('click', e => {
+  const chk = e.target.closest('[data-todo-check]');
+  if (chk) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleTodo(chk.dataset.todoCheck);
+    return;
+  }
+  const open = e.target.closest('[data-todo-open]');
+  if (open) openTodoModal(open.dataset.todoOpen);
+});
+$('#tdDaily').addEventListener('click', () => {
+  todoDaily = !todoDaily;
+  setTodoSwitch($('#tdDaily'), todoDaily);
+});
+$('#tdSave').addEventListener('click', saveTodo);
+$('#tdDelete').addEventListener('click', () => {
+  if (!todoEditingId) return;
+  const t = (state.todos || []).find(x => x.id === todoEditingId);
+  if (!t) return;
+  confirmAsk('刪掉「' + (t.title || '這件待辦') + '」？', '它會從收集箱消失。', () => {
+    state.todos = (state.todos || []).filter(x => x.id !== t.id);
+    todoEditingId = null;
+    persist();
+    renderTodo();
+    closeModal($('#confirmModal'));
+    closeModal($('#todoModal'));
+  });
+});
+
 $('#brandHome').addEventListener('click', showShelf);
 $('#memoModeBtn').addEventListener('click', toggleMemoLock);
 $('#backBtn').addEventListener('click', showShelf);
@@ -4847,7 +5263,7 @@ $('#setVol').addEventListener('input', e => {
   if ($('#setVolVal')) $('#setVolVal').textContent = state.settings.sound.vol;
   const p = P(); p.vol = state.settings.sound.vol;
   if (Heart.on && Heart.ctx) {
-    try { Heart.master.gain.linearRampToValueAtTime(clamp(.4 + Heart.vol() * 2.8, .2, 4.8), Heart.ctx.currentTime + 0.15); } catch (err) {}
+    try { Heart.master.gain.linearRampToValueAtTime(clamp(.5 + Heart.vol() * 3.0, .2, 6.6), Heart.ctx.currentTime + 0.15); } catch (err) {}
   }
   if (Heart.audioEl) Heart.audioEl.volume = Heart.vol();
   persist();
@@ -5065,6 +5481,7 @@ async function restoreBackupRaw(raw) {
   persist();
   applyTheme();
   renderShelf();
+  renderTodo();
   renderHim();
   updateSoundUI();
   showShelf();
@@ -5140,7 +5557,7 @@ const Cloud = {
         state.settings.cloud = cloudCfg;
         localStorage.setItem(STORE_KEY, JSON.stringify(state));
         applyTheme();
-        renderShelf(); renderHim(); updateSoundUI();
+        renderShelf(); renderTodo(); renderHim(); updateSoundUI();
         this.setStatus(true);
         if (!silent) toast('已從雲端恢復 ' + state.books.length + ' 本');
         return true;
@@ -5348,6 +5765,7 @@ async function init() {
   applyTheme();
   renderShelf();
   buildDock();
+  renderTodo();
   renderHim();
   updateSoundUI();
   Cloud.setStatus();
