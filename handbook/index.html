@@ -1379,7 +1379,7 @@ body.memo-locked #bkTitle{cursor:default}
         </div>
       </div>
       <div class="ss-tip" id="apiStatus">尚未接上，使用本地推演。</div>
-      <div class="ss-tip">接口需允許跨域；回傳含 heart_rate 的 JSON 即可。</div>
+      <div class="ss-tip">接口需允許跨域；回傳含 heart_rate 的 JSON 即可。MiniMax 的 Key 只貼本體，不要加 Bearer；401 多半是 Key 不對。</div>
     </div>
 
     <div class="ss-sec">
@@ -3328,7 +3328,17 @@ const VitalAPI = {
       const headers = { 'Content-Type': 'application/json' };
       if ((c.key || '').trim()) headers.Authorization = 'Bearer ' + c.key.trim();
       const res = await fetch(c.url.trim(), { method: 'POST', headers, body: JSON.stringify(body), signal: ctrl.signal });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) {
+        let detail = '';
+        try {
+          const raw = await res.text();
+          try {
+            const j = JSON.parse(raw);
+            detail = (j && ((j.error && j.error.message) || (j.base_resp && j.base_resp.status_msg) || j.message)) || '';
+          } catch (e2) { detail = raw.slice(0, 120); }
+        } catch (e2) {}
+        throw new Error('HTTP ' + res.status + (detail ? ' · ' + detail : ''));
+      }
       let data = await res.json();
       let out = data;
       const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || data.output || data.text || '';
