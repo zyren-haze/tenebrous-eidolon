@@ -1467,7 +1467,7 @@ body.memo-locked #bkTitle{cursor:default}
         </div>
       </div>
       <div class="ss-tip" id="apiStatus">尚未接上，使用本地推演。</div>
-      <div class="ss-tip">接口需允許跨域；回傳含 heart_rate 的 JSON 即可。MiniMax 的 Key 只貼本體，不要加 Bearer；401 多半是 Key 不對。</div>
+      <div class="ss-tip">升級後若 Key 不見，會先從原始備份自動救回；救不回才需重填。接口需允許跨域；回傳含 heart_rate 的 JSON 即可。MiniMax 的 Key 只貼本體，不要加 Bearer；401 多半是 Key 不對。</div>
     </div>
 
     <div class="ss-sec">
@@ -2095,8 +2095,16 @@ function initialState() {
   };
 }
 
+function readRawBackup() {
+  try {
+    const raw = localStorage.getItem(RAW_BACKUP_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
 function migrateState(raw) {
   if (!raw) return null;
+  const rescue = readRawBackup();
   const s = {
     version: 3,
     books: Array.isArray(raw.books) ? raw.books : [],
@@ -2106,8 +2114,10 @@ function migrateState(raw) {
     persona: defaultPersona(),
     settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
-  const rawP = (raw.persona && typeof raw.persona === 'object') ? raw.persona : null;
-  const hasP = !!(rawP && (rawP.name || rawP.role || rawP.world || rawP.traits || rawP.relation || rawP.notes));
+  let rawP = (raw.persona && typeof raw.persona === 'object') ? raw.persona : null;
+  const validP = (p) => !!((p && typeof p === 'object') && (p.name || p.role || p.world || p.traits || p.relation || p.notes));
+  if (!validP(rawP) && rescue && validP(rescue.persona)) rawP = rescue.persona;
+  const hasP = validP(rawP);
   if (hasP) Object.assign(s.persona, rawP);
   else {
     const oldP = (s.books.find(b => b && b.persona) || {}).persona;
@@ -2133,6 +2143,11 @@ function migrateState(raw) {
   if (raw.settings) {
     if (raw.settings.cloud) Object.assign(s.settings.cloud, raw.settings.cloud);
     if (raw.settings.api && typeof raw.settings.api === 'object') Object.assign(s.settings.api, raw.settings.api);
+    if (rescue && rescue.settings && rescue.settings.api && typeof rescue.settings.api === 'object') {
+      if (!s.settings.api.key && rescue.settings.api.key) s.settings.api.key = rescue.settings.api.key;
+      if (!s.settings.api.url && rescue.settings.api.url) s.settings.api.url = rescue.settings.api.url;
+      if (!s.settings.api.model && rescue.settings.api.model) s.settings.api.model = rescue.settings.api.model;
+    }
     if (typeof raw.settings.sound === 'boolean') s.settings.sound.on = raw.settings.sound;
     else if (raw.settings.sound && typeof raw.settings.sound === 'object') Object.assign(s.settings.sound, raw.settings.sound);
     if (raw.settings.theme) s.settings.theme = raw.settings.theme;
@@ -2170,6 +2185,23 @@ function loadState() {
 function getState() {
   if (!state) state = loadState();
   if (!state.persona) state.persona = defaultPersona();
+  if (!state.rescueChecked) {
+  state.rescueChecked = true;
+  const rescue = readRawBackup();
+  if (rescue && rescue.persona && !state.persona.name && !state.persona.role) {
+    const rp = rescue.persona;
+    if (rp.name || rp.role || rp.world || rp.traits || rp.relation || rp.notes) Object.assign(state.persona, rp);
+  }
+  if (rescue && rescue.settings && rescue.settings.api && !state.settings?.api?.key) {
+    if (!state.settings) state.settings = {};
+    if (!state.settings.api || typeof state.settings.api !== 'object') {
+      state.settings.api = { on: false, url: '', model: '', key: '', sec: 8 };
+    }
+    if (rescue.settings.api.key) state.settings.api.key = rescue.settings.api.key;
+    if (!state.settings.api.url && rescue.settings.api.url) state.settings.api.url = rescue.settings.api.url;
+    if (!state.settings.api.model && rescue.settings.api.model) state.settings.api.model = rescue.settings.api.model;
+  }
+  }
   if (!state.persona.name && !state.persona.role && !state.personaPresetApplied) {
     Object.assign(state.persona, PRESET_PERSONA);
     state.personaPresetApplied = true;
