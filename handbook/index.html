@@ -1573,7 +1573,7 @@ body.memo-locked #bkTitle{cursor:default}
         <div class="field"><label>音色</label><select id="pTone">
           <option value="steady">沉穩有力</option><option value="light">輕快</option><option value="faint">微弱</option>
         </select></div>
-        <div class="field"><label>音量</label><input id="pVol" type="range" min="0" max="160"></div>
+        <div class="field"><label>音量</label><input id="pVol" type="range" min="0" max="200"></div>
       </div>
       <div class="field"><label>專屬心跳音檔（可選）</label><input id="pAudioUrl" placeholder="https://…/heartbeat.mp3"></div>
       <div class="hint">留空時用合成心音，會隨心率自動變快變慢。</div>
@@ -1585,8 +1585,11 @@ body.memo-locked #bkTitle{cursor:default}
     </div>
 
     <div class="sheet-foot">
-      <button class="btn ghost" data-close="personaModal">取消</button>
-      <button class="btn primary" id="pSave">存進心裡</button>
+      <button class="btn ghost" id="pPreset">套用多弗朗明哥預設</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn ghost" data-close="personaModal">取消</button>
+        <button class="btn primary" id="pSave">存進心裡</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2007,6 +2010,22 @@ const defaultPersona = () => ({
   notes: ''
 });
 
+const PRESET_PERSONA = {
+  name: '唐吉诃德·多弗朗明哥', isEmpty: false,
+  world: '海賊王 / 大海賊時代 / 德雷斯羅薩',
+  role: '原王下七武海 / 唐吉訶德家族少主 / 地下世界中介人Joker',
+  age: '41歲',
+  relation: '戀人 / 佔有對象 / 極端偏愛者',
+  traits: '狂傲, 偏執, 掌控欲極強, 戲謔, 極度護短',
+  mood: '忧郁',
+  withYou: '卸下偽裝、極致反差、像小狗般黏人、心率飆升',
+  underPressure: '表面張揚狂笑，內心極度緊繃，心率飆升',
+  baseHr: 66, baseBr: 14, sys: 135, dia: 90, hrMin: 52, hrMax: 132,
+  breathStyle: '浅而快', body: '有旧伤', temp: 36.6,
+  tone: 'steady', vol: 180, audioUrl: '',
+  notes: '表面強健但內在有隱性損耗，情緒波動大時容易胸悶心悸。絕對禁忌是背叛，一旦感知到背叛會瞬間進入極度危險狀態。喜歡吃蝦，吃到蝦時會露出少見的、不帶算計的笑。在確認戀人身份後，會展現出極致反差，像收起利爪、瘋狂搖尾巴的大狗一樣黏人，極度渴望你的撫摸和關注。基礎體溫正常。'
+};
+
 function newPage(template) {
   return { id: uid('pg'), date: todayKey(), template: template || 'free', elements: [], createdAt: nowISO(), locked: false };
 }
@@ -2151,6 +2170,11 @@ function loadState() {
 function getState() {
   if (!state) state = loadState();
   if (!state.persona) state.persona = defaultPersona();
+  if (!state.persona.name && !state.persona.role && !state.personaPresetApplied) {
+    Object.assign(state.persona, PRESET_PERSONA);
+    state.personaPresetApplied = true;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
   if (!state.settings) state.settings = {};
   if (!state.settings.theme) state.settings.theme = 'auto';
   if (!state.settings.api || typeof state.settings.api !== 'object') {
@@ -4388,6 +4412,33 @@ function openPersonaModal() {
   openModal('personaModal');
 }
 
+function fillPersonaPreset() {
+  const p = PRESET_PERSONA;
+  $('#pName').value = p.name || '';
+  $('#pWorld').value = p.world || '';
+  $('#pRole').value = p.role || '';
+  $('#pAge').value = p.age || '';
+  $('#pRelation').value = p.relation || '';
+  $('#pTraits').value = p.traits || '';
+  $('#pMood').value = p.mood || '平静';
+  $('#pWith').value = p.withYou || '';
+  $('#pPressure').value = p.underPressure || '';
+  $('#pBaseHr').value = p.baseHr;
+  $('#pBaseBr').value = p.baseBr;
+  $('#pTemp').value = p.temp;
+  $('#pSys').value = p.sys;
+  $('#pDia').value = p.dia;
+  $('#pHrMin').value = p.hrMin;
+  $('#pHrMax').value = p.hrMax;
+  $('#pBreath').value = p.breathStyle || '正常';
+  $('#pBody').value = p.body || '健康';
+  $('#pTone').value = p.tone || 'steady';
+  $('#pVol').value = p.vol == null ? 180 : p.vol;
+  $('#pAudioUrl').value = p.audioUrl || '';
+  $('#pNotes').value = p.notes || '';
+  toast('已填入預設，按「存進心裡」保存');
+}
+
 function savePersona() {
   const num = (id, d) => { const v = Number($(id).value); return isFinite(v) && v > 0 ? v : d; };
   const p = P();
@@ -5383,6 +5434,7 @@ $('#setExport').addEventListener('click', () => { closeSettings(); exportBackup(
 $('#setImport').addEventListener('click', () => { closeSettings(); $('#importInput').click(); });
 
 $('#pSave').addEventListener('click', savePersona);
+$('#pPreset').addEventListener('click', fillPersonaPreset);
 $('#pTone').addEventListener('change', () => { /* 保存時一併寫入 */ });
 $('#pVol').addEventListener('input', () => { $('#pVol').dataset.touched = '1'; });
 
