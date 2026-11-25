@@ -1,190 +1,3 @@
-/* ===== 補丁：去便簽/四象限 ＋ 音量增強 ＋ 五種鮮明白噪音 ===== */
-
-/* 1) 隱藏便簽與四象限，打開網站直接進入「他」 */
-(function () {
-  const css = document.createElement('style');
-  css.textContent = [
-    '#memoModeBtn{display:none!important}',
-    '#todoView,#todoModal{display:none!important}',
-    '.dock{display:none!important}'
-  ].join('\n');
-  document.head.appendChild(css);
-
-  $$('button,.tbtn,.chip-btn').forEach(el => {
-    const t = (el.textContent || '').trim();
-    if (t && t.length <= 8 && /手帳|備忘|待辦|收集箱/.test(t)) el.style.display = 'none';
-  });
-
-  const nav = $('.nav');
-  if (nav && !$$('.nav button').some(b => /他/.test(b.textContent || ''))) {
-    const b = document.createElement('button');
-    b.textContent = '他';
-    b.addEventListener('click', () => showHim());
-    nav.appendChild(b);
-  }
-
-  const force = () => {
-    try {
-      if (/mode-(shelf|todo|book)/.test(document.body.className) ||
-          ($('#shelfView') && !$('#shelfView').classList.contains('hidden'))) showHim();
-    } catch (e) {}
-  };
-  new MutationObserver(force).observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  setTimeout(force, 60);
-  setTimeout(force, 800);
-  $('#brandHome').addEventListener('click', () => setTimeout(force, 0));
-})();
-
-/* 2) 心跳音量加大（×1.7） */
-(function () {
-  const _hv = Heart.vol.bind(Heart);
-  Heart.vol = () => Math.min(1, _hv() * 1.7);
-})();
-
-/* 3) 五種完全不同的白噪音：雨 / 海浪 / 柴火 / 風 / 夜晚蟲鳴 */
-(function () {
-  const AC = window.AudioContext || window.webkitAudioContext;
-  let ctx = null, master = null, tGain = null, src = null, filter = null;
-  let crackleIv = null, lfos = [], cur = 'rain', srcOn = false;
-
-  function S() { try { return (state && state.settings && state.settings.sound) || {}; } catch (e) { return {}; } }
-  function noiseBuffer() {
-    const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const d = b.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    return b;
-  }
-  function stopSub() {
-    if (crackleIv) { clearInterval(crackleIv); crackleIv = null; }
-    lfos.forEach(o => { try { o.stop(); } catch (e) {} });
-    lfos = [];
-  }
-  function applyVol() {
-    if (!master) return;
-    const v = ((S().noise || {}).vol != null ? S().noise.vol : 60) / 100;
-    master.gain.value = Math.min(1.2, v * 1.5);
-  }
-  function ensure() {
-    if (ctx) return;
-    ctx = new AC();
-    Noise.ctx = ctx;
-    master = ctx.createGain(); master.gain.value = 0;
-    master.connect(ctx.destination);
-    tGain = ctx.createGain();
-    filter = ctx.createBiquadFilter();
-    src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(); src.loop = true;
-    src.connect(filter); filter.connect(tGain); tGain.connect(master);
-  }
-
-  function rRain() { /* 雨：沙沙底噪＋隨機雨滴 */
-    filter.type = 'bandpass'; filter.frequency.value = 1300; filter.Q.value = 0.35;
-    tGain.gain.value = 0.55;
-    crackleIv = setInterval(() => {
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      const o = ctx.createBufferSource(); o.buffer = src.buffer;
-      const f = ctx.createBiquadFilter(); f.type = 'bandpass';
-      f.frequency.value = 2800 + Math.random() * 3400; f.Q.value = 10;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.09 + Math.random() * 0.09, t + 0.006);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-      o.connect(f); f.connect(g); g.connect(master);
-      o.start(t, Math.random() * 1.5, 0.12);
-    }, 70 + Math.random() * 150);
-  }
-  function rWave() { /* 海浪：緩慢起伏的浪 */
-    filter.type = 'lowpass'; filter.frequency.value = 650; filter.Q.value = 0.4;
-    tGain.gain.value = 0.45;
-    const l1 = ctx.createOscillator(); l1.frequency.value = 0.085;
-    const g1 = ctx.createGain(); g1.gain.value = 0.3;
-    l1.connect(g1); g1.connect(master.gain);
-    const l2 = ctx.createOscillator(); l2.frequency.value = 0.13;
-    const g2 = ctx.createGain(); g2.gain.value = 260;
-    l2.connect(g2); g2.connect(filter.frequency);
-    l1.start(); l2.start(); lfos.push(l1, l2);
-  }
-  function rFire() { /* 柴火：低頻轟鳴＋噼啪聲 */
-    filter.type = 'lowpass'; filter.frequency.value = 230;
-    tGain.gain.value = 0.6;
-    crackleIv = setInterval(() => {
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      const o = ctx.createBufferSource(); o.buffer = src.buffer;
-      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1900;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.14 + Math.random() * 0.2, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03 + Math.random() * 0.04);
-      o.connect(f); f.connect(g); g.connect(master);
-      o.start(t, Math.random() * 1.5, 0.09);
-    }, 100 + Math.random() * 400);
-  }
-  function rWind() { /* 風：飄忽、一陣一陣 */
-    filter.type = 'bandpass'; filter.frequency.value = 460; filter.Q.value = 1.8;
-    tGain.gain.value = 0.6;
-    const l1 = ctx.createOscillator(); l1.frequency.value = 0.11;
-    const g1 = ctx.createGain(); g1.gain.value = 240;
-    l1.connect(g1); g1.connect(filter.frequency);
-    const l2 = ctx.createOscillator(); l2.frequency.value = 0.23;
-    const g2 = ctx.createGain(); g2.gain.value = 0.18;
-    l2.connect(g2); g2.connect(master.gain);
-    l1.start(); l2.start(); lfos.push(l1, l2);
-  }
-  function rNight() { /* 夜晚：悶低底噪＋蟲鳴 */
-    filter.type = 'lowpass'; filter.frequency.value = 420;
-    tGain.gain.value = 0.4;
-    crackleIv = setInterval(() => {
-      if (!ctx) return;
-      const t = ctx.currentTime;
-      const o = ctx.createOscillator(); o.type = 'sine';
-      o.frequency.value = 3600 + Math.random() * 1000;
-      const g = ctx.createGain();
-      const n = 2 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < n; i++) {
-        const t0 = t + i * 0.07;
-        g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(0.055, t0 + 0.012);
-        g.gain.linearRampToValueAtTime(0, t0 + 0.05);
-      }
-      o.connect(g); g.connect(master);
-      o.start(t); o.stop(t + n * 0.07 + 0.1);
-    }, 800 + Math.random() * 1600);
-  }
-
-  const recipes = { rain: rRain, wave: rWave, fire: rFire, wind: rWind, night: rNight };
-  function mapType(s) {
-    s = String(s || '');
-    if (/rain|雨/i.test(s)) return 'rain';
-    if (/wave|sea|ocean|浪|海/i.test(s)) return 'wave';
-    if (/fire|wood|crackl|火|柴/i.test(s)) return 'fire';
-    if (/wind|風|风/i.test(s)) return 'wind';
-    return 'night';
-  }
-  cur = mapType((S().noise || {}).type);
-
-  Noise.enable = async function () {
-    try {
-      ensure();
-      if (ctx.state === 'suspended') await ctx.resume();
-      stopSub(); recipes[cur](); applyVol();
-      if (!srcOn) { src.start(); srcOn = true; }
-      Noise.on = true;
-      return true;
-    } catch (e) { return false; }
-  };
-  Noise.disable = function () {
-    stopSub();
-    if (master) master.gain.value = 0;
-    Noise.on = false;
-    if (ctx) ctx.suspend().catch(() => {});
-  };
-  Noise.setType = function (t) {
-    cur = mapType(t);
-    if (Noise.on && ctx) { stopSub(); recipes[cur](); applyVol(); }
-  };
-  Noise.setVol = function () { applyVol(); };
-})();
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="light">
 <head>
@@ -1616,9 +1429,10 @@ body.memo-locked #bkTitle{cursor:default}
         <div class="ss-lb">種類</div>
         <div class="seg" id="noiseSeg">
           <button data-noise="rain" aria-pressed="true">雨</button>
-          <button data-noise="sea" aria-pressed="false">海</button>
-          <button data-noise="fire" aria-pressed="false">火</button>
-          <button data-noise="white" aria-pressed="false">純白</button>
+          <button data-noise="wave" aria-pressed="false">海浪</button>
+          <button data-noise="fire" aria-pressed="false">柴火</button>
+          <button data-noise="wind" aria-pressed="false">風</button>
+          <button data-noise="night" aria-pressed="false">夜晚</button>
         </div>
       </div>
       <div class="ss-row">
@@ -6080,6 +5894,195 @@ async function init() {
     document.addEventListener('pointerdown', kick);
   }
 }
+/* ===== 已套用站內補丁：去便簽/四象限、音量增強、五種白噪音 ===== */
+/* ===== 補丁：去便簽/四象限 ＋ 音量增強 ＋ 五種鮮明白噪音 ===== */
+
+/* 1) 隱藏便簽與四象限，打開網站直接進入「他」 */
+(function () {
+  const css = document.createElement('style');
+  css.textContent = [
+    '#memoModeBtn{display:none!important}',
+    '#todoView,#todoModal{display:none!important}',
+    '.dock{display:none!important}'
+  ].join('\n');
+  document.head.appendChild(css);
+
+  $$('button,.tbtn,.chip-btn').forEach(el => {
+    const t = (el.textContent || '').trim();
+    if (t && t.length <= 8 && /手帳|備忘|待辦|收集箱/.test(t)) el.style.display = 'none';
+  });
+
+  const nav = $('.nav');
+  if (nav && !$$('.nav button').some(b => /他/.test(b.textContent || ''))) {
+    const b = document.createElement('button');
+    b.textContent = '他';
+    b.addEventListener('click', () => showHim());
+    nav.appendChild(b);
+  }
+
+  const force = () => {
+    try {
+      if (/mode-(shelf|todo|book)/.test(document.body.className) ||
+          ($('#shelfView') && !$('#shelfView').classList.contains('hidden'))) showHim();
+    } catch (e) {}
+  };
+  new MutationObserver(force).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  setTimeout(force, 60);
+  setTimeout(force, 800);
+  $('#brandHome').addEventListener('click', () => setTimeout(force, 0));
+})();
+
+/* 2) 心跳音量加大（×1.7） */
+(function () {
+  const _hv = Heart.vol.bind(Heart);
+  Heart.vol = () => Math.min(2, _hv() * 1.7);
+})();
+
+/* 3) 五種完全不同的白噪音：雨 / 海浪 / 柴火 / 風 / 夜晚蟲鳴 */
+(function () {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null, master = null, tGain = null, src = null, filter = null;
+  let crackleIv = null, lfos = [], cur = 'rain', srcOn = false;
+
+  function S() { try { return (state && state.settings && state.settings.sound) || {}; } catch (e) { return {}; } }
+  function noiseBuffer() {
+    const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  }
+  function stopSub() {
+    if (crackleIv) { clearInterval(crackleIv); crackleIv = null; }
+    lfos.forEach(o => { try { o.stop(); } catch (e) {} });
+    lfos = [];
+  }
+  function applyVol() {
+    if (!master) return;
+    const v = ((S().noise || {}).vol != null ? S().noise.vol : 60) / 100;
+    master.gain.value = Math.min(1.2, v * 1.5);
+  }
+  function ensure() {
+    if (ctx) return;
+    ctx = new AC();
+    Noise.ctx = ctx;
+    master = ctx.createGain(); master.gain.value = 0;
+    master.connect(ctx.destination);
+    tGain = ctx.createGain();
+    filter = ctx.createBiquadFilter();
+    src = ctx.createBufferSource();
+    src.buffer = noiseBuffer(); src.loop = true;
+    src.connect(filter); filter.connect(tGain); tGain.connect(master);
+  }
+
+  function rRain() { /* 雨：沙沙底噪＋隨機雨滴 */
+    filter.type = 'bandpass'; filter.frequency.value = 1300; filter.Q.value = 0.35;
+    tGain.gain.value = 0.55;
+    crackleIv = setInterval(() => {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const o = ctx.createBufferSource(); o.buffer = src.buffer;
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass';
+      f.frequency.value = 2800 + Math.random() * 3400; f.Q.value = 10;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.09 + Math.random() * 0.09, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      o.connect(f); f.connect(g); g.connect(master);
+      o.start(t, Math.random() * 1.5, 0.12);
+    }, 70 + Math.random() * 150);
+  }
+  function rWave() { /* 海浪：緩慢起伏的浪 */
+    filter.type = 'lowpass'; filter.frequency.value = 650; filter.Q.value = 0.4;
+    tGain.gain.value = 0.45;
+    const l1 = ctx.createOscillator(); l1.frequency.value = 0.085;
+    const g1 = ctx.createGain(); g1.gain.value = 0.3;
+    l1.connect(g1); g1.connect(master.gain);
+    const l2 = ctx.createOscillator(); l2.frequency.value = 0.13;
+    const g2 = ctx.createGain(); g2.gain.value = 260;
+    l2.connect(g2); g2.connect(filter.frequency);
+    l1.start(); l2.start(); lfos.push(l1, l2);
+  }
+  function rFire() { /* 柴火：低頻轟鳴＋噼啪聲 */
+    filter.type = 'lowpass'; filter.frequency.value = 230;
+    tGain.gain.value = 0.6;
+    crackleIv = setInterval(() => {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const o = ctx.createBufferSource(); o.buffer = src.buffer;
+      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1900;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.14 + Math.random() * 0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03 + Math.random() * 0.04);
+      o.connect(f); f.connect(g); g.connect(master);
+      o.start(t, Math.random() * 1.5, 0.09);
+    }, 100 + Math.random() * 400);
+  }
+  function rWind() { /* 風：飄忽、一陣一陣 */
+    filter.type = 'bandpass'; filter.frequency.value = 460; filter.Q.value = 1.8;
+    tGain.gain.value = 0.6;
+    const l1 = ctx.createOscillator(); l1.frequency.value = 0.11;
+    const g1 = ctx.createGain(); g1.gain.value = 240;
+    l1.connect(g1); g1.connect(filter.frequency);
+    const l2 = ctx.createOscillator(); l2.frequency.value = 0.23;
+    const g2 = ctx.createGain(); g2.gain.value = 0.18;
+    l2.connect(g2); g2.connect(master.gain);
+    l1.start(); l2.start(); lfos.push(l1, l2);
+  }
+  function rNight() { /* 夜晚：悶低底噪＋蟲鳴 */
+    filter.type = 'lowpass'; filter.frequency.value = 420;
+    tGain.gain.value = 0.4;
+    crackleIv = setInterval(() => {
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'sine';
+      o.frequency.value = 3600 + Math.random() * 1000;
+      const g = ctx.createGain();
+      const n = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) {
+        const t0 = t + i * 0.07;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.055, t0 + 0.012);
+        g.gain.linearRampToValueAtTime(0, t0 + 0.05);
+      }
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + n * 0.07 + 0.1);
+    }, 800 + Math.random() * 1600);
+  }
+
+  const recipes = { rain: rRain, wave: rWave, fire: rFire, wind: rWind, night: rNight };
+  function mapType(s) {
+    s = String(s || '');
+    if (/rain|雨/i.test(s)) return 'rain';
+    if (/wave|sea|ocean|浪|海/i.test(s)) return 'wave';
+    if (/fire|wood|crackl|火|柴/i.test(s)) return 'fire';
+    if (/wind|風|风/i.test(s)) return 'wind';
+    return 'night';
+  }
+  cur = mapType((S().noise || {}).type);
+
+  Noise.enable = async function () {
+    try {
+      ensure();
+      if (ctx.state === 'suspended') await ctx.resume();
+      stopSub(); recipes[cur](); applyVol();
+      if (!srcOn) { src.start(); srcOn = true; }
+      Noise.on = true;
+      return true;
+    } catch (e) { return false; }
+  };
+  Noise.disable = function () {
+    stopSub();
+    if (master) master.gain.value = 0;
+    Noise.on = false;
+    if (ctx) ctx.suspend().catch(() => {});
+  };
+  Noise.setType = function (t) {
+    cur = mapType(t);
+    if (Noise.on && ctx) { stopSub(); recipes[cur](); applyVol(); }
+  };
+  Noise.setVol = function () { applyVol(); };
+})();
+
 init();
 })();
 </script>
