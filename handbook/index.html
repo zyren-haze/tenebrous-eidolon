@@ -1320,6 +1320,7 @@ body.mode-him .topbar{display:none!important}
 .walk-help{margin:10px 0 2px;padding:11px 12px;border:1px solid #eedfe1;border-radius:14px;background:#fff8f8;color:#5b4b4e}
 .walk-help b{display:block;font-size:11.5px;letter-spacing:.02em;color:#8c505c;margin-bottom:4px}
 .walk-help p{font-size:9.5px;line-height:1.65;color:#75666a;margin:0 0 8px}
+.walk-bridge-state{font-size:8.5px;line-height:1.5;color:#9b8b8e;margin:-2px 0 8px;letter-spacing:.02em}
 .walk-help .walk-help-actions{display:flex;gap:7px}
 .walk-help button{height:27px;padding:0 10px;border-radius:9px;border:1px solid #e8d7d9;background:#fff;color:#7b5b61;font-size:10px;letter-spacing:.03em}
 .walk-help button.primary{background:#8c505c;border-color:#8c505c;color:#fff}
@@ -2109,6 +2110,7 @@ body.mode-him .topbar{display:none!important}
     <div class="walk-help" id="walkHelp" hidden>
       <b id="walkHelpTitle">定位失敗</b>
       <p id="walkHelpText"></p>
+      <div class="walk-bridge-state" id="walkBridgeState"></div>
       <div class="walk-help-actions">
         <button type="button" class="primary" id="walkRetry">再試一次</button>
         <button type="button" id="walkCopy">複製網址</button>
@@ -5103,6 +5105,7 @@ function renderWalk() {
     if (walk.err) {
       $('#walkHelpTitle').textContent = walk.err;
       $('#walkHelpText').textContent = walkHelpText();
+      $('#walkBridgeState').textContent = '定位方式：' + (hasLocationBridge() ? 'WebToApp 原生橋' : '瀏覽器 GPS（沒有偵測到 WebToApp 橋）');
     }
   }
   const elapsed = walk.on ? Date.now() - walk.startAt : walk.elapsedMs;
