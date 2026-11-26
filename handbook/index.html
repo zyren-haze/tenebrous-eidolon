@@ -1321,7 +1321,7 @@ body.mode-him .topbar{display:none!important}
 .walk-help b{display:block;font-size:11.5px;letter-spacing:.02em;color:#8c505c;margin-bottom:4px}
 .walk-help p{font-size:9.5px;line-height:1.65;color:#75666a;margin:0 0 8px}
 .walk-bridge-state{font-size:8.5px;line-height:1.5;color:#9b8b8e;margin:-2px 0 8px;letter-spacing:.02em}
-.walk-help .walk-help-actions{display:flex;gap:7px}
+.walk-help .walk-help-actions{display:flex;gap:7px;flex-wrap:wrap}
 .walk-help button{height:27px;padding:0 10px;border-radius:9px;border:1px solid #e8d7d9;background:#fff;color:#7b5b61;font-size:10px;letter-spacing:.03em}
 .walk-help button.primary{background:#8c505c;border-color:#8c505c;color:#fff}
 @media (max-width:360px){
@@ -2113,6 +2113,7 @@ body.mode-him .topbar{display:none!important}
       <div class="walk-bridge-state" id="walkBridgeState"></div>
       <div class="walk-help-actions">
         <button type="button" class="primary" id="walkRetry">再試一次</button>
+        <button type="button" id="walkOpenSettings" hidden>打開應用權限設定</button>
         <button type="button" id="walkCopy">複製網址</button>
       </div>
     </div>
@@ -5105,7 +5106,12 @@ function renderWalk() {
     if (walk.err) {
       $('#walkHelpTitle').textContent = walk.err;
       $('#walkHelpText').textContent = walkHelpText();
-      $('#walkBridgeState').textContent = '定位方式：' + (hasLocationBridge() ? 'WebToApp 原生橋' : '瀏覽器 GPS（沒有偵測到 WebToApp 橋）');
+      $('#walkBridgeState').textContent = '定位方式：' + locationModeLabel();
+      const openBtn = $('#walkOpenSettings');
+      if (openBtn) {
+        openBtn.hidden = !(walk.errCode === 1 && hasDesignLocationHooks());
+        openBtn.textContent = walk.errApp === 'Location service disabled' ? '打開系統定位設定' : '打開應用權限設定';
+      }
     }
   }
   const elapsed = walk.on ? Date.now() - walk.startAt : walk.elapsedMs;
@@ -5129,6 +5135,16 @@ function updateWalkUI() {
 }
 function hasLocationBridge() {
   return !!(window.FlutterWebView && typeof window.FlutterWebView.postMessage === 'function');
+}
+function hasDesignLocationHooks() {
+  try {
+    return typeof openAppLocationSettings === 'function' || typeof openDeviceLocationSettings === 'function';
+  } catch (e) { return false; }
+}
+function locationModeLabel() {
+  if (hasLocationBridge()) return 'WebToApp 原生橋';
+  if (hasDesignLocationHooks()) return 'WebToApp.design 原生定位';
+  return '瀏覽器 GPS（沒有偵測到 APK 定位接口）';
 }
 function requestBridgeLocation(timeout = 15000) {
   return new Promise((resolve, reject) => {
@@ -5183,6 +5199,10 @@ function stopBridgeWatch() {
 function walkHelpText() {
   if (walk.errCode === 1) {
     if (hasLocationBridge()) return 'APK 已經走 WebToApp 的定位橋，但系統沒有允許。到手機「設定 → 應用程式 → 這個 App → 權限 → 位置」允許，然後重開 APK；第一次開啟時也要在跳出的系統視窗按允許。';
+    if (walk.errApp === 'Location service disabled') return 'APK 已經有定位接口，但手機的「位置資訊」總開關關了。到系統設定打開位置，再回來按「再試一次」。';
+    if (walk.errApp === 'Permission denied permanently') return 'APK 已經拒絕過定位。按下面的「打開應用權限設定」，把「位置」改成「使用時允許」，回來再按「再試一次」。';
+    if (walk.errApp === 'Permission denied') return 'APK 還沒有拿到定位權限。按「再試一次」讓系統再問一次；如果不再跳窗，就按「打開應用權限設定」手動開。';
+    if (hasDesignLocationHooks()) return 'APK 已經走 WebToApp.design 的定位接口，但系統沒有允許。按下面的「打開應用權限設定」，把位置改成「使用時允許」，回來再按「再試一次」。';
     return '這是網頁的定位權限被拒。Edge 裡：右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是網址轉 APK，Edge 的權限不影響 APK；要在打包工具開啟定位權限，並讓 WebView 允許網頁定位，否則網頁自己無法申請。';
   }
   if (walk.errCode === 3) return '定位有回應但太慢。到空曠處、關省電模式，或打開 Wi-Fi / 行動數據再試一次。';
@@ -5224,6 +5244,7 @@ function walkWatchOk(pos) {
 }
 function walkWatchErr(e) {
   walk.errCode = e && e.code ? e.code : 0;
+  walk.errApp = (e && e.appMessage) ? e.appMessage : '';
   walk.err = walk.errCode === 1 ? '定位被拒絕' : (walk.errCode === 3 ? '定位逾時' : '定位失敗');
   if (walk.errCode === 1) stopWalk(false);
   else renderWalk();
@@ -5231,7 +5252,7 @@ function walkWatchErr(e) {
 function startWalk() {
   if (!navigator.geolocation) { walk.err = '這個瀏覽器沒有 GPS'; renderWalk(); return; }
   if (walk.on) { stopWalk(); return; }
-  walk.on = true; walk.km = 0; walk.startAt = Date.now(); walk.elapsedMs = 0; walk.last = null; walk.err = ''; walk.errCode = 0;
+  walk.on = true; walk.km = 0; walk.startAt = Date.now(); walk.elapsedMs = 0; walk.last = null; walk.err = ''; walk.errCode = 0; walk.errApp = '';
   if (hasLocationBridge()) {
     startBridgeWatch();
   } else {
@@ -5272,6 +5293,27 @@ $('#walkRetry').addEventListener('click', () => {
   if (walk.on) stopWalk(false);
   walk.err = ''; walk.errCode = 0;
   startWalk();
+});
+async function walkOpenSettings() {
+  try {
+    if (walk.errApp === 'Location service disabled' && typeof openDeviceLocationSettings === 'function') {
+      await openDeviceLocationSettings();
+      return;
+    }
+    if (typeof openAppLocationSettings === 'function') {
+      await openAppLocationSettings();
+      return;
+    }
+    if (typeof openDeviceLocationSettings === 'function') {
+      await openDeviceLocationSettings();
+      return;
+    }
+    toast('請到系統設定手動開啟定位權限');
+  } catch (e) { toast('請到系統設定手動開啟定位權限'); }
+}
+$('#walkOpenSettings').addEventListener('click', walkOpenSettings);
+document.addEventListener('appResumed', () => {
+  if (walk.errCode === 1) { walk.err = ''; walk.errCode = 0; walk.errApp = ''; renderWalk(); }
 });
 $('#walkCopy').addEventListener('click', walkCopyLink);
 async function walkAskApi() {
