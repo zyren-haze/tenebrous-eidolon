@@ -1186,6 +1186,7 @@ body.mode-him .topbar{display:none!important}
   -webkit-tap-highlight-color:transparent;
 }
 .avatar-big:active{transform:scale(.985)}
+.avatar-big.has-photo{background:transparent}
 #avatarImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;border-radius:50%}
 .avatar-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#a5a29b;background:linear-gradient(145deg,#f0efeb,#dedcd6);border-radius:50%;overflow:hidden}
 .avatar-empty svg{width:54px;height:54px;opacity:.72}
@@ -4973,8 +4974,8 @@ function renderHim() {
   const avSrc = p.avatar ? Media.src(p.avatar) : '';
   const av = $('#avatarImg'), fb = $('#avatarFallback');
   if (av && fb) {
-    if (avSrc) { av.src = avSrc; av.style.display = 'block'; fb.style.display = 'none'; }
-    else { av.removeAttribute('src'); av.style.display = 'none'; fb.style.display = 'flex'; }
+    if (avSrc) { av.src = avSrc; av.style.display = 'block'; fb.style.display = 'none'; $('#avatarWrap').classList.add('has-photo'); }
+    else { av.removeAttribute('src'); av.style.display = 'none'; fb.style.display = 'flex'; $('#avatarWrap').classList.remove('has-photo'); }
   }
 
   const annis = state.anniversaries || [];
@@ -5124,7 +5125,7 @@ function updateWalkUI() {
   }
 }
 function walkHelpText() {
-  if (walk.errCode === 1) return '系統的 Edge 位置已允許，還被擋通常是「網站權限」：Edge 右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是豆包 / 微信內建瀏覽器，請複製網址到 Chrome 或 Safari 再開。';
+  if (walk.errCode === 1) return '這是網頁的定位權限被拒。Edge 裡：右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是網址轉 APK，Edge 的權限不影響 APK；要在打包工具開啟定位權限，並讓 WebView 允許網頁定位，否則網頁自己無法申請。';
   if (walk.errCode === 3) return '定位有回應但太慢。到空曠處、關省電模式，或打開 Wi-Fi / 行動數據再試一次。';
   return '手機沒有給出座標。先確認系統定位已開、瀏覽器有位置權限，再到空曠處重試。';
 }
