@@ -1074,6 +1074,9 @@ body.memo-locked .paper-wrap{padding-bottom:20px}
 body.memo-locked #bkTitle{cursor:default}
 #humRow{margin-top:10px}
 .hum-note{font-size:10px;color:var(--ui-ink-3);line-height:1.7;margin-top:6px}
+
+.br-state{font-size:9px;margin-left:5px;padding:1px 5px;border-radius:999px;background:var(--ui-3);color:var(--ui-ink-3);font-style:normal;vertical-align:1px;letter-spacing:.04em}
+
 </style>
 </head>
 <body>
@@ -3492,6 +3495,16 @@ function computeTarget() {
   return { hr, br, sys, dia, temp, env, anniBoost, hour: env.hour, weather: env.weather, seg: env.seg, night: env.night };
 }
 
+function breathState(br) {
+  const n = Number(br);
+  if (!isFinite(n)) return '';
+  const base = Number(P().baseBr) || 14;
+  if (n >= base + 6) return '急促';
+  if (n >= base + 3) return '略快';
+  if (n <= base - 4) return '緩慢';
+  return '平穩';
+}
+
 function statusText(d) {
   const p = P();
   const who = p.name || '他';
@@ -3569,7 +3582,7 @@ const VitalAPI = {
         temperature: 0.7,
         max_tokens: 400,
         messages: [
-          { role: 'system', content: '你是角色生命體徵推演引擎。根據人設、時間、天氣、紀念日與上一次數值，推算此刻最合理的身體數據。只輸出一個 JSON 物件，不要解釋、不要 markdown：{"heart_rate":整數,"breath_rate":整數,"blood_pressure":"收縮/舒張"}。心率必須落在人設的心率範圍內，血壓收縮 70-190、舒張 40-130。' },
+          { role: 'system', content: '你是角色生命體徵推演引擎。根據人設、時間、天氣、紀念日、距離與上一次數值，推算此刻最合理的身體數據。呼吸要獨立推演：呼吸頻率 5-36 次/分；緊張、激動、靠近、炎熱、雷雨、剛活動時呼吸加快變淺，深夜、安靜、放鬆、睡眠時呼吸減慢變深；呼吸不必跟心率同步。只輸出一個 JSON 物件，不要解釋、不要 markdown：{"heart_rate":整數,"breath_rate":整數,"breath_note":"急促/略快/平穩/緩慢","blood_pressure":"收縮/舒張"}。心率必須落在人設的心率範圍內，血壓收縮 70-190、舒張 40-130。' },
           { role: 'user', content: JSON.stringify(this.snapshot()) }
         ]
       };
@@ -3596,7 +3609,13 @@ const VitalAPI = {
         if (m) { try { out = JSON.parse(m[0]); } catch (e) {} }
       }
       const hr = numOf(out.heart_rate != null ? out.heart_rate : (out.hr != null ? out.hr : out.bpm));
-      const br = numOf(out.breath_rate != null ? out.breath_rate : out.br);
+      const brRaw = out.breath_rate != null ? out.breath_rate
+        : (out.breathing_rate != null ? out.breathing_rate
+        : (out.respiration_rate != null ? out.respiration_rate
+        : (out.resp_rate != null ? out.resp_rate
+        : (typeof out.breath === 'object' && out.breath ? out.breath.rate : out.breath))));
+      const br = numOf(brRaw != null ? brRaw : out.br);
+      const brNote = String(out.breath_note || out.breath_state || out.breathing_note || '').trim();
       const bpRaw = out.blood_pressure != null ? out.blood_pressure : out.bp;
       let sys = null, dia = null;
       if (typeof bpRaw === 'string' && bpRaw.indexOf('/') > 0) {
@@ -3607,7 +3626,11 @@ const VitalAPI = {
       const hrMin = Math.min(p.hrMin, p.hrMax - 10), hrMax = Math.max(p.hrMin + 10, p.hrMax);
       if (!vitalsTarget) vitalsTarget = computeTarget();
       vitalsTarget.hr = clamp(Math.round(hr), hrMin, hrMax);
-      if (br != null) vitalsTarget.br = clamp(Math.round(br), 5, 36);
+      if (br != null) {
+        vitalsTarget.br = clamp(Math.round(br), 5, 36);
+        vitalsTarget.breathNote = brNote || breathState(vitalsTarget.br);
+        if (typeof Breath !== 'undefined') Breath.setRate(vitalsTarget.br);
+      }
       if (sys != null && dia != null) {
         vitalsTarget.sys = clamp(Math.round(sys), 80, 200);
         vitalsTarget.dia = clamp(Math.min(Math.round(dia), vitalsTarget.sys - 18), 45, 130);
@@ -3616,7 +3639,8 @@ const VitalAPI = {
       apiFreshUntil = Date.now() + Math.max(8, (c.sec || 8)) * 1000 * 2.5;
       this.ok = true;
       const now = new Date();
-      setApiStatus('已接上 · ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds()) + ' 推演 ' + vitalsTarget.hr + ' BPM');
+      const brText = vitalsTarget.br != null ? (' · 呼吸 ' + Math.round(vitalsTarget.br) + ' 次/分' + (vitalsTarget.breathNote ? '（' + vitalsTarget.breathNote + '）' : '')) : '';
+      setApiStatus('已接上 · ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds()) + ' 推演 ' + vitalsTarget.hr + ' BPM' + brText);
     } catch (e) {
       this.ok = false;
       const msg = e && e.name === 'AbortError' ? '逾時' : (e && e.message ? e.message : '失敗');
@@ -3673,7 +3697,7 @@ function tickVitals() {
   if ($('#vName')) $('#vName').textContent = p.name || '他';
   if ($('#vPlace')) $('#vPlace').textContent = pad2(Math.floor(env.hour)) + ':' + pad2(Math.round((env.hour % 1) * 60)) + ' · ' + env.weather + ' · ' + env.seg + (Date.now() < apiFreshUntil ? ' · API' : '');
   if ($('#vHr')) $('#vHr').textContent = hr;
-  if ($('#vBr')) $('#vBr').innerHTML = br + '<em>次/分</em>';
+  if ($('#vBr')) $('#vBr').innerHTML = br + '<em>次/分</em><span class="br-state">' + breathState(br) + '</span>';
   if ($('#vBp')) $('#vBp').textContent = sysNow + '/' + diaNow;
   if ($('#vTemp')) $('#vTemp').innerHTML = vitalsSmooth.temp.toFixed(1) + '<em>°C</em>';
   if ($('#vStatus')) $('#vStatus').textContent = statusText(vitalsTarget);
@@ -4478,7 +4502,7 @@ function renderHimVitals(hr, br, sys, dia) {
   if ($('#himView').classList.contains('hidden')) return;
   const p = P();
   if ($('#hHr')) $('#hHr').textContent = hr;
-  if ($('#hBr')) $('#hBr').innerHTML = br + '<em>次/分</em>';
+  if ($('#hBr')) $('#hBr').innerHTML = br + '<em>次/分</em><span class="br-state">' + breathState(br) + '</span>';
   if ($('#hBp')) $('#hBp').textContent = sys + '/' + dia;
   if ($('#hTemp')) $('#hTemp').innerHTML = (vitalsSmooth ? vitalsSmooth.temp.toFixed(1) : '—') + '<em>°C</em>';
   if ($('#hStatus')) $('#hStatus').textContent = statusText(vitalsTarget || computeTarget());
