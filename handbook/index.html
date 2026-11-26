@@ -1316,6 +1316,12 @@ body.mode-him .topbar{display:none!important}
 .walk-api-row span{display:block;font-size:9.5px;line-height:1.5;color:#9d978f;margin-top:2px}
 .walk-api-row .switch{flex:0 0 auto}
 .walk-note{font-size:9.5px;line-height:1.7;color:#a49e95;margin-top:10px}
+.walk-help{margin:10px 0 2px;padding:11px 12px;border:1px solid #eedfe1;border-radius:14px;background:#fff8f8;color:#5b4b4e}
+.walk-help b{display:block;font-size:11.5px;letter-spacing:.02em;color:#8c505c;margin-bottom:4px}
+.walk-help p{font-size:9.5px;line-height:1.65;color:#75666a;margin:0 0 8px}
+.walk-help .walk-help-actions{display:flex;gap:7px}
+.walk-help button{height:27px;padding:0 10px;border-radius:9px;border:1px solid #e8d7d9;background:#fff;color:#7b5b61;font-size:10px;letter-spacing:.03em}
+.walk-help button.primary{background:#8c505c;border-color:#8c505c;color:#fff}
 @media (max-width:360px){
   .walk-sheet{padding:15px 14px 16px;border-radius:22px}
   .walk-map{width:min(240px,100%)}
@@ -2092,6 +2098,15 @@ body.mode-him .topbar{display:none!important}
     <div class="walk-actions">
       <button class="btn primary walk-start" id="walkStart">開始散步</button>
       <button class="btn" id="walkRefresh">刷新他的位置</button>
+    </div>
+
+    <div class="walk-help" id="walkHelp" hidden>
+      <b id="walkHelpTitle">定位失敗</b>
+      <p id="walkHelpText"></p>
+      <div class="walk-help-actions">
+        <button type="button" class="primary" id="walkRetry">再試一次</button>
+        <button type="button" id="walkCopy">複製網址</button>
+      </div>
     </div>
 
     <div class="walk-api-row">
@@ -4974,7 +4989,7 @@ function renderHimVitals(hr, br, sys, dia) {
    ============================================================ */
 const WALK_PLACES = ['舊城鐘樓下','海邊的長椅','街角咖啡店','黃昏的橋邊','車站後門','公園梧桐下','便利店門口','雨後的屋簷','圖書館台階','河堤轉彎處'];
 const WALK_DIRS = ['北','東北','東','東南','南','西南','西','西北'];
-const walk = { on:false, watchId:null, last:null, km:0, startAt:0, elapsedMs:0, timer:null, him:null, acc:null, err:'', apiBusy:false };
+const walk = { on:false, watchId:null, last:null, km:0, startAt:0, elapsedMs:0, timer:null, him:null, acc:null, err:'', errCode:0, apiBusy:false };
 
 function walkDirText(deg) {
   const n = ((Number(deg) % 360) + 360) % 360;
@@ -5023,10 +5038,18 @@ function walkDrawRadar() {
     ctx.beginPath(); ctx.arc(cx, cy, r * i / 3, 0, Math.PI * 2); ctx.stroke();
   }
   ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
-  // 我
+  // 我：沒有座標時不假裝已定位
+  ctx.textAlign = 'center';
+  if (!walk.last) {
+    ctx.strokeStyle = 'rgba(23,23,23,.32)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(23,23,23,.5)'; ctx.font = '10px system-ui,sans-serif';
+    ctx.fillText('先定位', cx, cy + 17);
+    return;
+  }
   ctx.fillStyle = '#171717';
   ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(23,23,23,.62)'; ctx.font = '10px system-ui,sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(23,23,23,.62)'; ctx.font = '10px system-ui,sans-serif';
   ctx.fillText('我', cx, cy + 17);
   // 他
   if (walk.him) {
@@ -5054,6 +5077,14 @@ function renderWalk() {
   else if (walk.on) gps.textContent = '定位中…';
   else gps.textContent = '待命';
   $('#walkCoord').textContent = walk.last ? (walk.last.lat.toFixed(5) + ', ' + walk.last.lon.toFixed(5) + accText) : '定位待命';
+  const help = $('#walkHelp');
+  if (help) {
+    help.hidden = !walk.err;
+    if (walk.err) {
+      $('#walkHelpTitle').textContent = walk.err;
+      $('#walkHelpText').textContent = walkHelpText();
+    }
+  }
   const elapsed = walk.on ? Date.now() - walk.startAt : walk.elapsedMs;
   $('#walkTime').textContent = walkFmt(elapsed);
   const btn = $('#walkStart');
@@ -5073,6 +5104,34 @@ function updateWalkUI() {
     if (lb) lb.textContent = walk.on ? '散步中' : '散步';
   }
 }
+function walkHelpText() {
+  if (walk.errCode === 1) return '你剛剛拒絕了定位，或瀏覽器沒有給網頁位置權限。到手機「設定 → 應用程式 → 瀏覽器 → 權限 → 位置」改成允許；iPhone 到「設定 → 隱私與安全性 → 定位服務 → Safari」。如果是在豆包 / 微信裡打開，請複製網址到 Chrome 或 Safari 再開。';
+  if (walk.errCode === 3) return '定位有回應但太慢。到空曠處、關省電模式，或打開 Wi-Fi / 行動數據再試一次。';
+  return '手機沒有給出座標。先確認系統定位已開、瀏覽器有位置權限，再到空曠處重試。';
+}
+function walkCopyLink() {
+  const url = location.href;
+  const ok = () => toast('網址已複製，粘到系統瀏覽器再開');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(ok).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast('請長按網址列複製'); }
+      ta.remove();
+    });
+  } else { toast('請長按網址列複製'); }
+}
+async function checkWalkPermission() {
+  if (!navigator.permissions || !navigator.permissions.query) return;
+  try {
+    const st = await navigator.permissions.query({ name: 'geolocation' });
+    if (st.state === 'denied' && !walk.on && !walk.err) {
+      walk.err = '定位被拒絕'; walk.errCode = 1; renderWalk();
+    }
+    st.onchange = () => {
+      if (st.state === 'granted' && walk.errCode === 1) { walk.err = ''; walk.errCode = 0; renderWalk(); }
+    };
+  } catch (e) {}
+}
 function walkWatchOk(pos) {
   const c = pos.coords;
   const next = { lat: c.latitude, lon: c.longitude };
@@ -5084,14 +5143,15 @@ function walkWatchOk(pos) {
   renderWalk();
 }
 function walkWatchErr(e) {
-  walk.err = e && e.code === 1 ? '定位被拒絕' : (e && e.code === 3 ? '定位逾時' : '定位失敗');
-  if (e && e.code === 1) stopWalk(false);
+  walk.errCode = e && e.code ? e.code : 0;
+  walk.err = walk.errCode === 1 ? '定位被拒絕' : (walk.errCode === 3 ? '定位逾時' : '定位失敗');
+  if (walk.errCode === 1) stopWalk(false);
   else renderWalk();
 }
 function startWalk() {
   if (!navigator.geolocation) { walk.err = '這個瀏覽器沒有 GPS'; renderWalk(); return; }
   if (walk.on) { stopWalk(); return; }
-  walk.on = true; walk.km = 0; walk.startAt = Date.now(); walk.elapsedMs = 0; walk.last = null; walk.err = '';
+  walk.on = true; walk.km = 0; walk.startAt = Date.now(); walk.elapsedMs = 0; walk.last = null; walk.err = ''; walk.errCode = 0;
   walk.watchId = navigator.geolocation.watchPosition(walkWatchOk, walkWatchErr, { enableHighAccuracy:true, maximumAge:4000, timeout:16000 });
   clearInterval(walk.timer);
   walk.timer = setInterval(() => { if (walk.on) $('#walkTime').textContent = walkFmt(Date.now() - walk.startAt); }, 1000);
@@ -5116,12 +5176,19 @@ function openWalkSheet() {
   if (!walk.him) walkRandomHim(true);
   openModal('walkModal');
   renderWalk();
+  checkWalkPermission();
   setTimeout(walkDrawRadar, 80);
 }
 function closeWalkSheet() {
   if (walk.on) stopWalk();
   closeModal($('#walkModal'));
 }
+$('#walkRetry').addEventListener('click', () => {
+  if (walk.on) stopWalk(false);
+  walk.err = ''; walk.errCode = 0;
+  startWalk();
+});
+$('#walkCopy').addEventListener('click', walkCopyLink);
 async function walkAskApi() {
   const c = (state.settings && state.settings.api) || {};
   if (!(c.on && (c.url || '').trim())) { toast('先到設定接上 API'); return false; }
