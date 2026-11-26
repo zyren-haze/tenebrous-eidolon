@@ -1150,6 +1150,14 @@ body.mode-him .topbar{display:none!important}
   color:#111;
 }
 #himView::-webkit-scrollbar{display:none}
+#himView.has-page-bg{
+  background-image:
+    linear-gradient(180deg,rgba(250,250,248,.48) 0%,rgba(246,245,241,.64) 42%,rgba(239,238,233,.78) 100%),
+    var(--page-bg);
+  background-size:cover,cover;
+  background-position:center,center;
+  background-repeat:no-repeat,no-repeat;
+}
 .home-scroll{
   position:relative;z-index:1;min-height:100%;
   max-width:390px;margin:0 auto;
@@ -1232,6 +1240,28 @@ body.mode-him .topbar{display:none!important}
 .vital-sound-label{white-space:nowrap}
 #hSoundLbl,#hSoundSub{display:none!important}
 
+/* 卡片底圖：低透明度墊在文字下面，保留可讀性 */
+.avatar-stage::after,.anni-line::before,.vital-card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background-image:var(--card-bg,none);background-size:cover;background-position:center;
+  opacity:.46;filter:saturate(.82) contrast(.98);pointer-events:none;z-index:0;
+}
+.avatar-stage> *,.vital-card> *,.anni-line> *{position:relative;z-index:1}
+.anni-line{overflow:hidden}
+.vital-card{overflow:hidden}
+
+.bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.bg-cell{border:1px solid #ececec;border-radius:14px;overflow:hidden;background:#fff;min-width:0}
+.bg-thumb{height:62px;background:#f6f5f1 center/cover no-repeat;position:relative;border-bottom:1px solid #eee;display:grid;place-items:center;color:#b0aca4;font-size:9px;letter-spacing:.08em}
+.bg-thumb.empty{background-image:linear-gradient(135deg,#fbfaf7,#efede7);background-size:auto}
+.bg-thumb span{position:relative;z-index:1}
+.bg-thumb:not(.empty) span{display:none}
+.bg-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:7px 8px}
+.bg-meta b{font-size:10px;font-weight:650;color:#3f3d39;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bg-act{display:flex;align-items:center;gap:1px;flex:0 0 auto}
+.bg-act button{font-size:9px;line-height:1;padding:4px 5px;border-radius:6px;background:#f4f3ef;color:#666;letter-spacing:.02em}
+.bg-act button:active{transform:scale(.96)}
+.bg-act [data-bg-clear]{color:#a76b75}
 .home-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:2px}
 .home-tile{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
@@ -1552,6 +1582,29 @@ body.mode-him .topbar{display:none!important}
           <button data-theme-val="night" aria-pressed="false">夜間</button>
         </div>
       </div>
+    </div>
+
+    <div class="ss-sec" id="bgSection">
+      <h3>首頁背景</h3>
+      <div class="bg-grid">
+        <div class="bg-cell" data-bg-cell="page">
+          <div class="bg-thumb empty" id="bgThumbPage"><span>頁面</span></div>
+          <div class="bg-meta"><b>頁面底圖</b><div class="bg-act"><button type="button" data-bg-pick="page">更換</button><button type="button" data-bg-clear="page">清除</button></div></div>
+        </div>
+        <div class="bg-cell" data-bg-cell="persona">
+          <div class="bg-thumb empty" id="bgThumbPersona"><span>他的卡片</span></div>
+          <div class="bg-meta"><b>他的卡片</b><div class="bg-act"><button type="button" data-bg-pick="persona">更換</button><button type="button" data-bg-clear="persona">清除</button></div></div>
+        </div>
+        <div class="bg-cell" data-bg-cell="anni">
+          <div class="bg-thumb empty" id="bgThumbAnni"><span>紀念日</span></div>
+          <div class="bg-meta"><b>紀念日</b><div class="bg-act"><button type="button" data-bg-pick="anni">更換</button><button type="button" data-bg-clear="anni">清除</button></div></div>
+        </div>
+        <div class="bg-cell" data-bg-cell="vitals">
+          <div class="bg-thumb empty" id="bgThumbVitals"><span>心 · 呼吸</span></div>
+          <div class="bg-meta"><b>心 · 呼吸</b><div class="bg-act"><button type="button" data-bg-pick="vitals">更換</button><button type="button" data-bg-clear="vitals">清除</button></div></div>
+        </div>
+      </div>
+      <div class="ss-tip">每張卡可以放不同的圖；圖片只存在這台裝置，備份會一起帶走。</div>
     </div>
 
     <div class="ss-sec" id="apiSection">
@@ -2054,6 +2107,7 @@ body.mode-him .topbar{display:none!important}
 <input type="file" id="coverInput" accept="image/*" class="hidden">
 <input type="file" id="importInput" accept="application/json,.json" class="hidden">
 <input type="file" id="avatarInput" accept="image/*" class="hidden">
+<input type="file" id="bgInput" accept="image/*" class="hidden">
 </div>
 <script>
 (function () {
@@ -2351,6 +2405,7 @@ function initialState() {
     anniversaries: [],
     todos: [],
     walk: { totalKm: 0, useApi: false },
+    bg: { page: '', persona: '', anni: '', vitals: '' },
     settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
 }
@@ -2373,6 +2428,7 @@ function migrateState(raw) {
     todos: normalizeTodos(raw.todos),
     persona: defaultPersona(),
     walk: raw.walk && typeof raw.walk === 'object' ? { totalKm: Math.max(0, Number(raw.walk.totalKm) || 0), useApi: !!raw.walk.useApi } : { totalKm: 0, useApi: false },
+    bg: raw.bg && typeof raw.bg === 'object' ? { page: String(raw.bg.page || ''), persona: String(raw.bg.persona || ''), anni: String(raw.bg.anni || ''), vitals: String(raw.bg.vitals || '') } : { page: '', persona: '', anni: '', vitals: '' },
     settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
   let rawP = (raw.persona && typeof raw.persona === 'object') ? raw.persona : null;
@@ -2447,6 +2503,8 @@ function getState() {
   if (!state) state = loadState();
   if (!state.persona) state.persona = defaultPersona();
   if (!state.walk || typeof state.walk !== 'object') state.walk = { totalKm: 0, useApi: false };
+  if (!state.bg || typeof state.bg !== 'object') state.bg = {};
+  ['page','persona','anni','vitals'].forEach(k => { if (state.bg[k] == null) state.bg[k] = ''; });
   if (!state.rescueChecked) {
   state.rescueChecked = true;
   const rescue = readRawBackup();
@@ -3670,6 +3728,85 @@ $('#avatarInput').addEventListener('change', async e => {
   } catch (err) { toast('這張圖讀不進來'); }
 });
 
+/* 首頁背景：頁面與三張卡片各自一張圖，存在 Media 倉庫 */
+const BG_KEYS = ['page', 'persona', 'anni', 'vitals'];
+function bgCssUrl(v) {
+  const u = Media.src(v);
+  return u ? 'url("' + String(u).replace(/"/g, '%22') + '")' : '';
+}
+function renderBgSettings() {
+  const map = { page: 'bgThumbPage', persona: 'bgThumbPersona', anni: 'bgThumbAnni', vitals: 'bgThumbVitals' };
+  BG_KEYS.forEach(k => {
+    const el = $('#' + map[k]);
+    if (!el) return;
+    const u = bgCssUrl((state.bg || {})[k]);
+    el.classList.toggle('empty', !u);
+    el.style.backgroundImage = u;
+    const cell = el.closest('.bg-cell');
+    const clr = cell && $('[data-bg-clear]', cell);
+    if (clr) clr.hidden = !u;
+  });
+}
+function applyHomeBg() {
+  if (!state) return;
+  state.bg = state.bg || {};
+  const page = bgCssUrl(state.bg.page);
+  const hv = $('#himView');
+  if (hv) {
+    hv.classList.toggle('has-page-bg', !!page);
+    if (page) hv.style.setProperty('--page-bg', page);
+    else hv.style.removeProperty('--page-bg');
+  }
+  const cards = { persona: '.avatar-stage', anni: '#hAnniv', vitals: '#breathPanel' };
+  Object.keys(cards).forEach(k => {
+    const el = $(cards[k]);
+    if (!el) return;
+    const u = bgCssUrl(state.bg[k]);
+    if (u) el.style.setProperty('--card-bg', u);
+    else el.style.removeProperty('--card-bg');
+  });
+  renderBgSettings();
+}
+
+let bgTarget = 'page';
+document.addEventListener('click', e => {
+  const pick = e.target.closest('[data-bg-pick]');
+  if (pick) {
+    e.preventDefault();
+    bgTarget = pick.dataset.bgPick || 'page';
+    const inp = $('#bgInput');
+    inp.value = '';
+    inp.click();
+    return;
+  }
+  const clr = e.target.closest('[data-bg-clear]');
+  if (clr) {
+    e.preventDefault();
+    const k = clr.dataset.bgClear;
+    if (!BG_KEYS.includes(k)) return;
+    state.bg = state.bg || {};
+    state.bg[k] = '';
+    persist();
+    applyHomeBg();
+    toast('已清除這張卡的底圖');
+  }
+});
+$('#bgInput').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  if (!/^image\//.test(f.type)) { toast('要選一張圖片'); return; }
+  try {
+    const blob = await compressImage(f, 1200, 0.8);
+    const id = await Media.put(blob);
+    state.bg = state.bg || {};
+    state.bg[bgTarget] = id;
+    persist();
+    applyHomeBg();
+    toast(Media.failed ? '底圖先放著了，但本機圖片倉庫不可用' : '這張卡的底圖換好了');
+  } catch (err) { toast('這張圖讀不進來'); }
+});
+
 /* ============================================================
    14. 角色 / 自動環境
    ============================================================ */
@@ -4817,6 +4954,7 @@ function renderHim() {
     card.innerHTML = '<span>還沒有紀念日 · 記下在一起的那天</span><b>＋</b>';
   }
   updateSoundUI();
+  applyHomeBg();
 }
 
 function renderHimVitals(hr, br, sys, dia) {
@@ -6195,6 +6333,14 @@ async function backupSnapshot() {
     const ab = await Media.blobOf(snap.persona.avatar);
     if (ab) snap.persona.avatar = await blobToDataURL(ab);
   }
+  if (snap.bg) {
+    for (const k of ['page','persona','anni','vitals']) {
+      if (snap.bg[k] && String(snap.bg[k]).startsWith('media:')) {
+        const bl = await Media.blobOf(snap.bg[k]);
+        if (bl) snap.bg[k] = await blobToDataURL(bl);
+      }
+    }
+  }
   for (const bk of snap.books) {
     if (bk.cover && bk.cover.type === 'image' && bk.cover.src && String(bk.cover.src).startsWith('media:')) {
       const bl = await Media.blobOf(bk.cover.src);
@@ -6225,6 +6371,11 @@ async function restoreBackupRaw(raw) {
   if (!raw || !Array.isArray(raw.books)) throw new Error('bad');
   toast('正在讀取備份…', 4000);
   if (raw.persona && raw.persona.avatar) raw.persona.avatar = await dataURLToMedia(raw.persona.avatar);
+  if (raw.bg) {
+    for (const k of ['page','persona','anni','vitals']) {
+      if (raw.bg[k]) raw.bg[k] = await dataURLToMedia(raw.bg[k]);
+    }
+  }
   for (const bk of raw.books) {
     if (bk.cover && bk.cover.type === 'image' && bk.cover.src) bk.cover.src = await dataURLToMedia(bk.cover.src);
     if (!bk.pages || !bk.pages.length) bk.pages = [newPage()];
