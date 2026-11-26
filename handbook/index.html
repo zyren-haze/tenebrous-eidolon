@@ -1077,6 +1077,68 @@ body.memo-locked #bkTitle{cursor:default}
 
 .br-state{font-size:9px;margin-left:5px;padding:1px 5px;border-radius:999px;background:var(--ui-3);color:var(--ui-ink-3);font-style:normal;vertical-align:1px;letter-spacing:.04em}
 
+
+/* 手機頂欄減負：只留品牌、他、心音圖標、設定 */
+.topbar .brand-text span{display:none}
+.topbar .brand-text b{font-size:15px;letter-spacing:.08em}
+@media (min-width:601px){.brand-mini{display:none}}
+@media (max-width:600px){.brand-mini{display:inline;font-size:14px;letter-spacing:.08em}}
+.topbar{gap:6px;padding:10px 12px}
+#cloudBtn,#backupBtn{display:none!important}
+#soundBtn{padding:0!important;width:36px;height:36px;justify-content:center}
+#soundBtn .lbl{display:none}
+#settingsBtn{height:36px;padding:0 13px}
+/* ---------- 小手機 / ins 介面 ---------- */
+html,body{background:#ececec}
+#app{background:#fafafa}
+#himView{background:#fafafa;padding:12px 12px 86px}
+.him-wrap{max-width:390px;grid-template-columns:1fr;gap:12px;padding-bottom:4px}
+.him-card{border-radius:24px;border-color:#ececec;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:18px}
+.him-left::before{display:none}
+.him-kicker{letter-spacing:.16em;color:#9a9a9a}
+.him-name{font-family:var(--ui-font);font-weight:700;font-size:30px;line-height:1.12;letter-spacing:-.035em;margin:8px 0 4px}
+.him-rel{background:#f3f3f3;color:#111;font-weight:600;letter-spacing:.04em}
+.him-bio{border-top-color:#eee;gap:14px}
+.him-bio .bi span{font-size:13px}
+.him-traits span{background:#f7f7f7;border-color:#eee;color:#555}
+.him-quote{font-family:var(--ui-font);font-size:13px;line-height:1.72;color:#555;border-top-color:#eee}
+.beat-card{padding:18px}
+.beat-hr b{font-family:var(--ui-font);font-weight:700;color:#111}
+.beat-ecg{background:#f7f7f7;border-radius:12px}
+.beat-status{font-family:var(--ui-font);font-size:12px;line-height:1.7;color:#666}
+.beat-sound{background:#111;border-color:#111;color:#fff;border-radius:16px}
+.beat-sound .bs-icon{background:#242424;border-color:#333;color:#fff}
+.beat-sound.on{background:#f3f3f3;color:#111;border-color:#e8e8e8}
+.beat-sound.on .bs-icon{background:#fff;border-color:#ddd;color:#c98b96}
+#settingsBtn{background:#111!important;color:#fff!important;border-color:#111!important;box-shadow:0 4px 14px rgba(0,0,0,.18);font-weight:600}
+#settingsBtn svg{color:#fff}
+#cloudBtn,#backupBtn{opacity:.55}
+#apiSection{border:1px solid #e3e3e3;background:#fff;border-radius:16px;padding:14px 14px 8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+#apiSection h3{letter-spacing:.08em}
+.api-badge{display:inline-flex;align-items:center;gap:6px;margin:2px 0 8px;padding:5px 9px;border-radius:999px;background:#111;color:#fff;font-size:10.5px;letter-spacing:.04em}
+#humSection{display:none!important}
+.br-visual{grid-column:1/-1}
+.br-visual label{display:flex;align-items:center;gap:5px}
+.br-visual label em{font-style:normal;font-size:9px;color:#b06d79;background:#f7e8ea;border-radius:999px;padding:1px 5px;letter-spacing:.04em}
+.br-wave{display:block;width:100%;height:32px;margin-top:3px;border-radius:8px;background:#fafafa}
+@media (min-width:640px){
+  body{display:grid;place-items:center;padding:18px;background:#dedede}
+  .settings-sheet{position:absolute;width:100%;right:0;top:0;bottom:0;border-radius:36px;overflow:hidden}
+  .sheet-mask{position:absolute;inset:0;border-radius:36px}
+  .modal{position:absolute;inset:0}
+  #app{width:404px;height:min(860px,calc(100dvh - 36px));border-radius:44px;border:9px solid #111;box-shadow:0 40px 90px rgba(0,0,0,.28);overflow:hidden}
+}
+@media (max-width:639px){#app{border-radius:0}}
+.mini-dock{
+  position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:24;
+  display:flex;align-items:center;gap:3px;padding:5px;border-radius:999px;
+  background:rgba(255,255,255,.92);border:1px solid #e7e7e7;
+  box-shadow:0 10px 28px rgba(0,0,0,.14);backdrop-filter:blur(14px);
+}
+.mini-dock button{height:34px;padding:0 16px;border-radius:999px;font-size:12px;letter-spacing:.04em;color:#666;transition:.18s}
+.mini-dock button[aria-current="true"]{background:#111;color:#fff}
+.mini-dock button:active{transform:scale(.97)}
+
 </style>
 </head>
 <body>
@@ -1224,7 +1286,7 @@ body.memo-locked #bkTitle{cursor:default}
       </div>
       <div class="ecg-wrap"><canvas id="ecg"></canvas></div>
       <div class="vp-stats">
-        <div><label>呼吸</label><b id="vBr">—<em>次/分</em></b></div>
+        <div class="br-visual"><label>呼吸 <em id="vBrState">平穩</em></label><canvas id="vBrWave" class="br-wave" width="180" height="30"></canvas></div>
         <div><label>血壓</label><b id="vBp">—/—</b></div>
         <div class="vp-temp"><label>體溫</label><b id="vTemp">—<em>°C</em></b></div>
       </div>
@@ -1265,7 +1327,7 @@ body.memo-locked #bkTitle{cursor:default}
       </div>
     </div>
 
-    <div class="him-card beat-card">
+    <div class="him-card beat-card" id="breathPanel">
       <div class="beat-top">
         <div class="beat-env">
           <span id="hTime">—</span><br>
@@ -1279,7 +1341,7 @@ body.memo-locked #bkTitle{cursor:default}
       </div>
       <div class="beat-ecg"><canvas id="hEcg"></canvas></div>
       <div class="beat-stats">
-        <div class="bs"><label>呼吸</label><b id="hBr">—<em>次/分</em></b></div>
+        <div class="bs br-visual"><label>呼吸 <em id="hBrState">平穩</em></label><canvas id="hBrWave" class="br-wave" width="180" height="30"></canvas></div>
         <div class="bs"><label>血壓</label><b id="hBp">—/—</b></div>
         <div class="bs"><label>體溫</label><b id="hTemp">—<em>°C</em></b></div>
       </div>
@@ -1355,6 +1417,36 @@ body.memo-locked #bkTitle{cursor:default}
       </div>
     </div>
 
+    <div class="ss-sec" id="apiSection">
+      <h3>心跳 + 呼吸 · API</h3>
+      <div class="ss-row">
+        <div class="ss-lb">接上你的 API<span>每幾秒推演一次，其餘時間本地微調</span></div>
+        <button class="switch" id="apiOn" role="switch" aria-checked="false"><i></i></button>
+      </div>
+      <div class="api-presets" id="apiPresets">
+        <button data-p="openai">OpenAI</button>
+        <button data-p="deepseek">DeepSeek</button>
+        <button data-p="qwen">通義</button>
+        <button data-p="minimax">MiniMax</button>
+        <button data-p="custom">自訂</button>
+      </div>
+      <input class="ss-input" id="apiUrl" placeholder="接口位址（/v1/chat/completions）">
+      <input class="ss-input" id="apiModel" placeholder="模型名稱（例 gpt-4o-mini）">
+      <input class="ss-input" id="apiKey" type="password" placeholder="API Key（只存在這台裝置）">
+      <div class="ss-row" style="margin-top:8px">
+        <div class="ss-lb">推演間隔</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="ss-input" id="apiSec" style="width:104px;margin:0">
+            <option value="3">3 秒</option><option value="5">5 秒</option><option value="8">8 秒</option><option value="15">15 秒</option>
+          </select>
+          <button class="ss-mini" id="apiTest">測試</button>
+        </div>
+      </div>
+      <div class="api-badge">同一個 API 同時推演心跳與呼吸，不用另接</div>
+      <div class="ss-tip" id="apiStatus">尚未接上，使用本地推演。</div>
+      <div class="ss-tip">升級後若 Key 不見，會先從原始備份自動救回；救不回才需重填。接口需允許跨域；回傳含 heart_rate、breath_rate 的 JSON 即可。MiniMax 的 Key 只貼本體，不要加 Bearer；401 多半是 Key 不對。</div>
+    </div>
+
     <div class="ss-sec">
       <h3>心音</h3>
       <div class="ss-row">
@@ -1401,7 +1493,7 @@ body.memo-locked #bkTitle{cursor:default}
       <div class="ss-tip">呼吸循環跟著他的呼吸頻率；前台和後台速度一致。後台由手機媒體通道播放。</div>
     </div>
 
-    <div class="ss-sec">
+    <div class="ss-sec" id="humSection">
       <h3>他的哼唱</h3>
       <div class="ss-row">
         <div class="ss-lb">哼歌<span>不用指定歌，只哼隨機小調</span></div>
@@ -1457,35 +1549,6 @@ body.memo-locked #bkTitle{cursor:default}
         <input class="range" id="noiseVol" type="range" min="0" max="100" value="25">
         <b class="ss-val" id="noiseVolVal">25</b>
       </div>
-    </div>
-
-    <div class="ss-sec">
-      <h3>即時心跳 · API</h3>
-      <div class="ss-row">
-        <div class="ss-lb">接上你的 API<span>每幾秒推演一次，其餘時間本地微調</span></div>
-        <button class="switch" id="apiOn" role="switch" aria-checked="false"><i></i></button>
-      </div>
-      <div class="api-presets" id="apiPresets">
-        <button data-p="openai">OpenAI</button>
-        <button data-p="deepseek">DeepSeek</button>
-        <button data-p="qwen">通義</button>
-        <button data-p="minimax">MiniMax</button>
-        <button data-p="custom">自訂</button>
-      </div>
-      <input class="ss-input" id="apiUrl" placeholder="接口位址（/v1/chat/completions）">
-      <input class="ss-input" id="apiModel" placeholder="模型名稱（例 gpt-4o-mini）">
-      <input class="ss-input" id="apiKey" type="password" placeholder="API Key（只存在這台裝置）">
-      <div class="ss-row" style="margin-top:8px">
-        <div class="ss-lb">推演間隔</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select class="ss-input" id="apiSec" style="width:104px;margin:0">
-            <option value="3">3 秒</option><option value="5">5 秒</option><option value="8">8 秒</option><option value="15">15 秒</option>
-          </select>
-          <button class="ss-mini" id="apiTest">測試</button>
-        </div>
-      </div>
-      <div class="ss-tip" id="apiStatus">尚未接上，使用本地推演。</div>
-      <div class="ss-tip">升級後若 Key 不見，會先從原始備份自動救回；救不回才需重填。接口需允許跨域；回傳含 heart_rate、breath_rate 的 JSON 即可。MiniMax 的 Key 只貼本體，不要加 Bearer；401 多半是 Key 不對。</div>
     </div>
 
     <div class="ss-sec">
@@ -1813,6 +1876,11 @@ body.memo-locked #bkTitle{cursor:default}
 <input type="file" id="fileInput" accept="image/*" class="hidden">
 <input type="file" id="coverInput" accept="image/*" class="hidden">
 <input type="file" id="importInput" accept="application/json,.json" class="hidden">
+<nav class="mini-dock" id="miniDock" aria-label="快速切換">
+  <button data-dock="him" aria-current="true">他</button>
+  <button data-dock="breath">呼吸</button>
+  <button data-dock="settings">設定</button>
+</nav>
 </div>
 <script>
 (function () {
@@ -3639,7 +3707,7 @@ const VitalAPI = {
       apiFreshUntil = Date.now() + Math.max(8, (c.sec || 8)) * 1000 * 2.5;
       this.ok = true;
       const now = new Date();
-      const brText = vitalsTarget.br != null ? (' · 呼吸 ' + Math.round(vitalsTarget.br) + ' 次/分' + (vitalsTarget.breathNote ? '（' + vitalsTarget.breathNote + '）' : '')) : '';
+      const brText = vitalsTarget.br != null ? (' · 呼吸 ' + (vitalsTarget.breathNote || breathState(vitalsTarget.br))) : '';
       setApiStatus('已接上 · ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds()) + ' 推演 ' + vitalsTarget.hr + ' BPM' + brText);
     } catch (e) {
       this.ok = false;
@@ -3697,7 +3765,7 @@ function tickVitals() {
   if ($('#vName')) $('#vName').textContent = p.name || '他';
   if ($('#vPlace')) $('#vPlace').textContent = pad2(Math.floor(env.hour)) + ':' + pad2(Math.round((env.hour % 1) * 60)) + ' · ' + env.weather + ' · ' + env.seg + (Date.now() < apiFreshUntil ? ' · API' : '');
   if ($('#vHr')) $('#vHr').textContent = hr;
-  if ($('#vBr')) $('#vBr').innerHTML = br + '<em>次/分</em><span class="br-state">' + breathState(br) + '</span>';
+  BreathViz.set(br);
   if ($('#vBp')) $('#vBp').textContent = sysNow + '/' + diaNow;
   if ($('#vTemp')) $('#vTemp').innerHTML = vitalsSmooth.temp.toFixed(1) + '<em>°C</em>';
   if ($('#vStatus')) $('#vStatus').textContent = statusText(vitalsTarget);
@@ -4112,6 +4180,52 @@ const Breath = {
     this.el.play().catch(() => {});
   }
 };
+
+const BreathViz = {
+  br: 14, phase: 0, raf: null, last: 0,
+  set(br) {
+    this.br = Number(br) || 14;
+    const state = breathState(this.br);
+    const v = document.getElementById('vBrState'); if (v) v.textContent = state;
+    const h = document.getElementById('hBrState'); if (h) h.textContent = state;
+    if (!this.raf) { this.last = performance.now(); this.raf = requestAnimationFrame(t => this.tick(t)); }
+  },
+  tick(t) {
+    const dt = Math.min(.05, Math.max(.012, (t - this.last) / 1000 || .016));
+    this.last = t;
+    this.phase += dt * (this.br / 60) * Math.PI * 2 * 1.35;
+    this.draw('vBrWave'); this.draw('hBrWave');
+    this.raf = requestAnimationFrame(x => this.tick(x));
+  },
+  draw(id) {
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    const dpr = Math.min(2.4, window.devicePixelRatio || 1);
+    const w = cv.clientWidth || 180, h = cv.clientHeight || 26;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(0,0,0,.06)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h * .55); ctx.lineTo(w, h * .55); ctx.stroke();
+    const amp = h * .27;
+    const cycles = 1.6 + Math.min(3.4, this.br / 6.5);
+    for (let layer = 0; layer < 2; layer++) {
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 2) {
+        const p = x / w * Math.PI * 2 * cycles + this.phase + layer * .55;
+        const taper = .55 + .45 * Math.sin(x / w * Math.PI);
+        const y = h * .55 + Math.sin(p) * amp * taper * (layer ? .75 : 1);
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = layer ? 'rgba(201,139,150,.28)' : '#c98b96';
+      ctx.lineWidth = layer ? 1 : 2;
+      ctx.stroke();
+    }
+  }
+};
 function breathOn() {
   return !!(state.settings && state.settings.sound && state.settings.sound.breath && state.settings.sound.breath.on);
 }
@@ -4502,7 +4616,7 @@ function renderHimVitals(hr, br, sys, dia) {
   if ($('#himView').classList.contains('hidden')) return;
   const p = P();
   if ($('#hHr')) $('#hHr').textContent = hr;
-  if ($('#hBr')) $('#hBr').innerHTML = br + '<em>次/分</em><span class="br-state">' + breathState(br) + '</span>';
+  BreathViz.set(br);
   if ($('#hBp')) $('#hBp').textContent = sys + '/' + dia;
   if ($('#hTemp')) $('#hTemp').innerHTML = (vitalsSmooth ? vitalsSmooth.temp.toFixed(1) : '—') + '<em>°C</em>';
   if ($('#hStatus')) $('#hStatus').textContent = statusText(vitalsTarget || computeTarget());
@@ -4647,11 +4761,13 @@ function addAnniversary() {
    ============================================================ */
 function openSettings() {
   renderSettingsValues();
+  const md = $('#miniDock'); if (md) md.style.display = 'none';
   $('#sheetMask').classList.add('open');
   $('#settingsSheet').classList.add('open');
   $('#settingsSheet').setAttribute('aria-hidden', 'false');
 }
 function closeSettings() {
+  const md = $('#miniDock'); if (md) md.style.display = '';
   $('#sheetMask').classList.remove('open');
   $('#settingsSheet').classList.remove('open');
   $('#settingsSheet').setAttribute('aria-hidden', 'true');
@@ -5442,6 +5558,18 @@ $('#apiTest').addEventListener('click', () => { readApiFields(); VitalAPI.run(tr
 $('#vMute').addEventListener('click', () => setSound(!soundOn()));
 $('#hSoundRow').addEventListener('click', () => setSound(!soundOn()));
 
+$('#miniDock').addEventListener('click', e => {
+  const b = e.target.closest('[data-dock]');
+  if (!b) return;
+  $$('#miniDock [data-dock]').forEach(x => x.setAttribute('aria-current', String(x === b)));
+  const act = b.dataset.dock;
+  if (act === 'settings') { openSettings(); return; }
+  showHim();
+  if (act === 'breath') setTimeout(() => {
+    const el = $('#breathPanel');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 60);
+});
 $('#settingsBtn').addEventListener('click', openSettings);
 $('#ssClose').addEventListener('click', closeSettings);
 $('#sheetMask').addEventListener('click', closeSettings);
