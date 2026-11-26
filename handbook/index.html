@@ -5009,7 +5009,7 @@ function renderHimVitals(hr, br, sys, dia) {
    ============================================================ */
 const WALK_PLACES = ['舊城鐘樓下','海邊的長椅','街角咖啡店','黃昏的橋邊','車站後門','公園梧桐下','便利店門口','雨後的屋簷','圖書館台階','河堤轉彎處'];
 const WALK_DIRS = ['北','東北','東','東南','南','西南','西','西北'];
-const walk = { on:false, watchId:null, last:null, km:0, startAt:0, elapsedMs:0, timer:null, him:null, acc:null, err:'', errCode:0, apiBusy:false };
+const walk = { on:false, watchId:null, last:null, km:0, startAt:0, elapsedMs:0, timer:null, him:null, acc:null, err:'', errCode:0, apiBusy:false, bridgeTimer:null, bridgeActive:false, bridgeBusy:false };
 
 function walkDirText(deg) {
   const n = ((Number(deg) % 360) + 360) % 360;
@@ -5124,8 +5124,64 @@ function updateWalkUI() {
     if (lb) lb.textContent = walk.on ? '散步中' : '散步';
   }
 }
+function hasLocationBridge() {
+  return !!(window.FlutterWebView && typeof window.FlutterWebView.postMessage === 'function');
+}
+function requestBridgeLocation(timeout = 15000) {
+  return new Promise((resolve, reject) => {
+    const bridge = window.FlutterWebView;
+    if (!bridge || typeof bridge.postMessage !== 'function') {
+      reject({ code: 1, message: '定位橋不可用' });
+      return;
+    }
+    const requestId = 'loc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    let timer = 0;
+    const cleanup = () => {
+      window.removeEventListener('FlutterLocationResponse', onResponse);
+      if (timer) clearTimeout(timer);
+    };
+    const onResponse = e => {
+      const detail = e && e.detail;
+      if (!detail || detail.requestId !== requestId) return;
+      cleanup();
+      if (detail.success && detail.data) resolve(detail.data);
+      else reject({ code: 1, message: (detail.error && detail.error.message) || '系統沒有允許定位' });
+    };
+    window.addEventListener('FlutterLocationResponse', onResponse);
+    timer = setTimeout(() => { cleanup(); reject({ code: 3, message: '定位逾時' }); }, timeout);
+    bridge.postMessage(JSON.stringify({
+      type: 'getLocation', requestId,
+      options: { highAccuracy: true, timeoutMs: timeout }
+    }));
+  });
+}
+function startBridgeWatch() {
+  walk.bridgeActive = true;
+  const tick = async () => {
+    if (!walk.bridgeActive || !walk.on || walk.bridgeBusy) return;
+    walk.bridgeBusy = true;
+    try {
+      const d = await requestBridgeLocation(15000);
+      walkWatchOk({ coords: { latitude: d.lat, longitude: d.lng, accuracy: d.accuracy || 0 } });
+    } catch (e) {
+      walkWatchErr({ code: e && e.code ? e.code : 1, message: e && e.message });
+    } finally {
+      walk.bridgeBusy = false;
+    }
+  };
+  tick();
+  walk.bridgeTimer = setInterval(tick, 4000);
+}
+function stopBridgeWatch() {
+  walk.bridgeActive = false; walk.bridgeBusy = false;
+  if (walk.bridgeTimer) { clearInterval(walk.bridgeTimer); walk.bridgeTimer = null; }
+}
+
 function walkHelpText() {
-  if (walk.errCode === 1) return '這是網頁的定位權限被拒。Edge 裡：右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是網址轉 APK，Edge 的權限不影響 APK；要在打包工具開啟定位權限，並讓 WebView 允許網頁定位，否則網頁自己無法申請。';
+  if (walk.errCode === 1) {
+    if (hasLocationBridge()) return 'APK 已經走 WebToApp 的定位橋，但系統沒有允許。到手機「設定 → 應用程式 → 這個 App → 權限 → 位置」允許，然後重開 APK；第一次開啟時也要在跳出的系統視窗按允許。';
+    return '這是網頁的定位權限被拒。Edge 裡：右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是網址轉 APK，Edge 的權限不影響 APK；要在打包工具開啟定位權限，並讓 WebView 允許網頁定位，否則網頁自己無法申請。';
+  }
   if (walk.errCode === 3) return '定位有回應但太慢。到空曠處、關省電模式，或打開 Wi-Fi / 行動數據再試一次。';
   return '手機沒有給出座標。先確認系統定位已開、瀏覽器有位置權限，再到空曠處重試。';
 }
@@ -5141,6 +5197,7 @@ function walkCopyLink() {
   } else { toast('請長按網址列複製'); }
 }
 async function checkWalkPermission() {
+  if (hasLocationBridge()) return;
   if (!navigator.permissions || !navigator.permissions.query) return;
   try {
     const st = await navigator.permissions.query({ name: 'geolocation' });
@@ -5172,12 +5229,17 @@ function startWalk() {
   if (!navigator.geolocation) { walk.err = '這個瀏覽器沒有 GPS'; renderWalk(); return; }
   if (walk.on) { stopWalk(); return; }
   walk.on = true; walk.km = 0; walk.startAt = Date.now(); walk.elapsedMs = 0; walk.last = null; walk.err = ''; walk.errCode = 0;
-  walk.watchId = navigator.geolocation.watchPosition(walkWatchOk, walkWatchErr, { enableHighAccuracy:true, maximumAge:4000, timeout:16000 });
+  if (hasLocationBridge()) {
+    startBridgeWatch();
+  } else {
+    walk.watchId = navigator.geolocation.watchPosition(walkWatchOk, walkWatchErr, { enableHighAccuracy:true, maximumAge:4000, timeout:16000 });
+  }
   clearInterval(walk.timer);
   walk.timer = setInterval(() => { if (walk.on) $('#walkTime').textContent = walkFmt(Date.now() - walk.startAt); }, 1000);
   renderWalk();
 }
 function stopWalk(save) {
+  stopBridgeWatch();
   if (walk.watchId != null) { try { navigator.geolocation.clearWatch(walk.watchId); } catch (e) {} }
   walk.watchId = null;
   clearInterval(walk.timer); walk.timer = null;
