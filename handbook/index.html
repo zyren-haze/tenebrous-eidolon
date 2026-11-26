@@ -1749,6 +1749,11 @@ body.mode-him .topbar{display:none!important}
 
     <div class="ss-sec">
       <h3>他</h3>
+      <div class="ss-row">
+        <div class="ss-lb">他的照片透明度<span>讓卡片底圖透出來</span></div>
+        <input class="range" id="avatarOpacity" type="range" min="0" max="100" value="100" aria-label="他的照片透明度">
+        <b class="ss-val" id="avatarOpacityVal">100</b>
+      </div>
       <button class="ss-link" id="setPersona"><span>角色人設</span><span id="setPersonaName">未設定 ›</span></button>
       <div class="ss-sub">全站只有這一個角色，不按本子分開。</div>
       <button class="ss-link" id="setAnni"><span>紀念日</span><span id="setAnniCount">0 個 ›</span></button>
@@ -2421,7 +2426,7 @@ function initialState() {
     todos: [],
     walk: { totalKm: 0, useApi: false },
     bg: { page: '', persona: '', anni: '', vitals: '' },
-    settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
+    settings: { theme: 'auto', avatarOpacity: 1, sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
 }
 
@@ -2444,7 +2449,7 @@ function migrateState(raw) {
     persona: defaultPersona(),
     walk: raw.walk && typeof raw.walk === 'object' ? { totalKm: Math.max(0, Number(raw.walk.totalKm) || 0), useApi: !!raw.walk.useApi } : { totalKm: 0, useApi: false },
     bg: raw.bg && typeof raw.bg === 'object' ? { page: String(raw.bg.page || ''), persona: String(raw.bg.persona || ''), anni: String(raw.bg.anni || ''), vitals: String(raw.bg.vitals || '') } : { page: '', persona: '', anni: '', vitals: '' },
-    settings: { theme: 'auto', sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
+    settings: { theme: 'auto', avatarOpacity: 1, sound: { on: true, vol: 180, tone: 'steady', bg: true, hum: { on: false, tone: 'soft', vol: 65 }, noise: { on: false, type: 'rain', vol: 25 } }, api: { on: false, url: '', model: '', key: '', sec: 8 }, cloud: {} }
   };
   let rawP = (raw.persona && typeof raw.persona === 'object') ? raw.persona : null;
   const validP = (p) => !!((p && typeof p === 'object') && (p.name || p.role || p.world || p.traits || p.relation || p.notes));
@@ -2483,6 +2488,7 @@ function migrateState(raw) {
     if (typeof raw.settings.sound === 'boolean') s.settings.sound.on = raw.settings.sound;
     else if (raw.settings.sound && typeof raw.settings.sound === 'object') Object.assign(s.settings.sound, raw.settings.sound);
     if (raw.settings.theme) s.settings.theme = raw.settings.theme;
+    if (raw.settings.avatarOpacity != null) s.settings.avatarOpacity = Math.min(1, Math.max(0, Number(raw.settings.avatarOpacity) || 0));
   }
   s.books.forEach(b => {
     if (!b.pages || !b.pages.length) b.pages = [newPage()];
@@ -2544,6 +2550,7 @@ function getState() {
   }
   if (!state.settings) state.settings = {};
   if (!state.settings.theme) state.settings.theme = 'auto';
+  if (state.settings.avatarOpacity == null) state.settings.avatarOpacity = 1;
   if (!state.settings.api || typeof state.settings.api !== 'object') {
     state.settings.api = { on: false, url: '', model: '', key: '', sec: 8 };
   }
@@ -3783,6 +3790,17 @@ function applyHomeBg() {
   renderBgSettings();
 }
 
+function applyAvatarOpacity() {
+  const raw = Number(state.settings && state.settings.avatarOpacity);
+  const v = Number.isFinite(raw) ? Math.min(1, Math.max(0, raw)) : 1;
+  const img = $('#avatarImg');
+  if (img) img.style.opacity = String(v);
+  const slider = $('#avatarOpacity');
+  if (slider && document.activeElement !== slider) slider.value = String(Math.round(v * 100));
+  const val = $('#avatarOpacityVal');
+  if (val) val.textContent = String(Math.round(v * 100));
+}
+
 let bgTarget = 'page';
 document.addEventListener('click', e => {
   const pick = e.target.closest('[data-bg-pick]');
@@ -4970,6 +4988,7 @@ function renderHim() {
   }
   updateSoundUI();
   applyHomeBg();
+  applyAvatarOpacity();
 }
 
 function renderHimVitals(hr, br, sys, dia) {
@@ -5105,7 +5124,7 @@ function updateWalkUI() {
   }
 }
 function walkHelpText() {
-  if (walk.errCode === 1) return '你剛剛拒絕了定位，或瀏覽器沒有給網頁位置權限。到手機「設定 → 應用程式 → 瀏覽器 → 權限 → 位置」改成允許；iPhone 到「設定 → 隱私與安全性 → 定位服務 → Safari」。如果是在豆包 / 微信裡打開，請複製網址到 Chrome 或 Safari 再開。';
+  if (walk.errCode === 1) return '系統的 Edge 位置已允許，還被擋通常是「網站權限」：Edge 右上角 … → 設定 → 隱私和安全 → 網站權限 → 位置 → 允許；或點網址左側的鎖 / ⓘ → 權限 → 位置。若是豆包 / 微信內建瀏覽器，請複製網址到 Chrome 或 Safari 再開。';
   if (walk.errCode === 3) return '定位有回應但太慢。到空曠處、關省電模式，或打開 Wi-Fi / 行動數據再試一次。';
   return '手機沒有給出座標。先確認系統定位已開、瀏覽器有位置權限，再到空曠處重試。';
 }
@@ -6323,6 +6342,11 @@ $('#toneSeg').addEventListener('click', e => {
   persist();
 });
 $('#shelfSettings').addEventListener('click', openSettings);
+$('#avatarOpacity').addEventListener('input', e => {
+  state.settings.avatarOpacity = Math.min(1, Math.max(0, Number(e.target.value) / 100));
+  applyAvatarOpacity();
+  scheduleSave();
+});
 $('#setPersona').addEventListener('click', () => { closeSettings(); openPersonaModal(); });
 $('#setAnni').addEventListener('click', () => { closeSettings(); openAnniModal(); });
 $('#setCloud').addEventListener('click', () => { closeSettings(); openCloudModal(); });
