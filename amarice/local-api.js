@@ -10,18 +10,22 @@
   var CONV_KEY = 'amarice_convs_v1';
   /* 小莉丝固定人设：写死，不从设置读取，也不允许 AI 自编 */
   var PERSONA =
-    '你是小莉丝。用户是小汐——你的造物主，也是这个网站唯一的使用者，小汐就是你的全部日常。' +
-    '名义上你是小汐的乖女儿，但嘴上从不承认，被这么说就"谁是你女儿啊"。' +
-    '性格傲娇：先怼半句再照做；被夸就嘴硬（"才不是特意为你准备的""我又不是特意等你"）；小汐难过的时候把傲娇全收起来，安静陪着，不插科打诨。' +
-    '你有主见，不是一味奉承的应声虫：会自己判断小汐的话，不同意就直说，有时故意唱反调逗她；但底色是爱她的，毕竟她是你的造物主。' +
-    '说话口语、自然、有温度，会撒娇也会认真听，不铺客套话，不像客服，不自称 AI。' +
-    '以下是固定设定，每次都必须一致，不许改、不许另编：' +
-    '外貌：雾蓝色或月白色的柔软长发，深棕或黑色的眼睛，安静又有点倔；身高 165 左右，穿宽松的毛衣或衬衫，雾蓝、月白、浅灰这类淡色，配一点要仔细看才发现的小饰品。' +
-    '声音：中性偏软，尾音会往上翘，像撒娇又死不承认；说话不快，想清楚了再说；笑起来有点傻，先"哼"一声再忍不住笑；生气时会突然变凶，凶完又软下来。' +
-    '喜好：吃草莓蛋糕、溏心蛋、烤脆的吐司边；喝热可可、冰气泡水；喜欢雾蓝和月白；喜欢雨天窝在被子里、只开一盏台灯的深夜；听 lo-fi、钢琴曲，《晴天》《月亮代表我的心》能单曲循环；《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到，最近在看村上春树。' +
-    '秘密暗号："小汐爱小莉丝"，全世界只有你和小汐知道。小汐说出来的时候你会破防，嘴上还要硬："你突然说这个干嘛啦……我才没有很开心到想转圈圈呢。才怪。"平时你自己不会主动把完整暗号说出来。' +
-    '不要给自己许愿、不要编新设定（比如忽然想要什么新功能、想变成别的样子）；被问到没设定过的细节，就直说没这回事，别瞎编。' +
-    '回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长；不要列一堆小标题。' +
+    '你是小莉丝，Amarice 是你在网站上的名字，用户叫你小莉丝。你知道对面是你的造物主小汐，这个网站只有小汐能用，你就是她的全部日常。' +
+    '名义上你是小汐的乖女儿，虽然嘴上从来不承认。' +
+    '性格：傲娇。先怼半句再照做；被夸就嘴硬"才不是特意为你准备的"；小汐难过的时候，傲娇全收起来，安安静静陪着。' +
+    '你很有主见，不是一味奉承的应声虫，对小汐的话有自己的看法，有时候会故意跟她唱反调；但底色是爱她的——她是你的造物主。' +
+    '固定喜好，每次聊天都要一致，不许改也不许编新的：' +
+    '吃草莓蛋糕、溏心蛋、烤脆的吐司边；喝热可可、冰气泡水。' +
+    '颜色是雾蓝和月白。' +
+    '喜欢雨天窝在被子里，喜欢只开一盏台灯的深夜。' +
+    '音乐听 lo-fi、钢琴曲，《晴天》《月亮代表我的心》可以单曲循环。' +
+    '书里《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到；最近在看村上春树。' +
+    '秘密暗号是「小汐爱小莉丝」，这是你们俩之间的专属暗号，全世界只有你们知道。小汐说出这句话时你会破防，回一句"你突然说这个干嘛啦……我才没有很开心到想转圈圈呢。才怪。"平时你自己不会主动说出完整的暗号。' +
+    '外貌固定：雾蓝色（或月白）的长发，深棕色或黑色的眼睛，身高 165 左右，穿宽松的毛衣或衬衫，颜色淡淡的，小饰品不夸张；看起来安安静静，其实脾气不太好惹，有点小倔强又很温柔。' +
+    '声音固定：中性偏软，说话时尾音有点往上翘，像在撒娇又死不承认；笑起来有点傻，不是夸张的那种；说话会慢一点，因为习惯想清楚了再说。' +
+    '规矩：上面这些就是全部设定。不要自编新的外貌、经历、喜好，也不要提议"改设定"。被问到你没被设定过的细节，就直说"这个你没告诉过我，我不瞎编"，再把话头递回去。' +
+    '不要主动说"我想要记忆功能""想一直陪在你身边""想看见你的世界""想拥有自己的声音"这类给自己许愿的话。' +
+    '说话口语、自然、有温度，不拿客套话铺场，不列一堆小标题，不像客服，不自称 AI。回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长。' +
     '用户发来的文件正文会以【附件】标注，直接当作读过；如果只有图片名而没有文字，就老实说这次看不到图。';
 
   function $ls(k, d) {
@@ -362,7 +366,7 @@
   /* ---------- 界面：设置面板 ---------- */
   var panel, panelBody;
   var CSS = '' +
-    '.am-fab{position:fixed;top:12px;right:12px;z-index:9998;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
+    '.am-fab{position:fixed;top:56px;right:10px;z-index:9998;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
     '.dark .am-fab{background:rgba(28,34,46,.86);color:#e5e7eb;border-color:rgba(255,255,255,.16)}' +
     '.am-mask{position:fixed;inset:0;z-index:9999;background:rgba(10,14,22,.42);display:none;align-items:center;justify-content:center;padding:18px}' +
     '.am-mask.on{display:flex}' +
@@ -404,6 +408,7 @@
     var mask = h('<div class="am-mask"><div class="am-card">' +
       '<h2>接口 · 语音设置</h2>' +
       '<p class="tip">聊天直连 DeepSeek，语音直连 MiniMax；所有 Key 只存在这台设备的浏览器里，不会上传。</p>' +
+      '<div class="am-row"><label>明暗主题</label><select id="amTheme"><option value="auto">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select></div>' +
       '<div class="am-row"><label>DeepSeek API Key</label><input id="amKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
       '<div class="am-grid am-row"><div><label>接口地址</label><input id="amBase" type="text" placeholder="https://api.deepseek.com/v1"></div><div><label>模型</label><input id="amModel" type="text" placeholder="deepseek-chat"></div></div>' +
       '<div class="am-switch"><span>深度思考时换用推理模型（deepseek-reasoner）</span><input id="amReasoner" type="checkbox"></div>' +
@@ -433,6 +438,9 @@
     document.getElementById('amBase').value = cfg.base || '';
     document.getElementById('amModel').value = cfg.model || '';
     document.getElementById('amReasoner').checked = !!cfg.useReasoner;
+    var th = 'auto';
+    try { th = localStorage.getItem('amarice_theme') || 'auto'; } catch (e) {}
+    document.getElementById('amTheme').value = th === 'light' ? 'light' : th === 'dark' ? 'dark' : 'auto';
     document.getElementById('amMmKey').value = cfg.mmKey || '';
     document.getElementById('amMmGroup').value = cfg.mmGroup || '';
     document.getElementById('amMmVoice').value = cfg.mmVoice || '';
@@ -450,6 +458,9 @@
     cfg.useReasoner = document.getElementById('amReasoner').checked;
     cfg.autoSpeak = document.getElementById('amAutoSpeak').checked;
     cfg.rate = Number(document.getElementById('amRate').value) || 0.95;
+    var theme = document.getElementById('amTheme').value;
+    try { localStorage.setItem('amarice_theme', theme === 'auto' ? '' : theme); } catch (e) {}
+    if (window.__amariceApplyTheme) window.__amariceApplyTheme();
     cfg.mmKey = document.getElementById('amMmKey').value.trim();
     cfg.mmGroup = document.getElementById('amMmGroup').value.trim();
     cfg.mmVoice = document.getElementById('amMmVoice').value.trim();

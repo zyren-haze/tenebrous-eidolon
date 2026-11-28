@@ -7,15 +7,20 @@
     <meta name="theme-color" content="#151a24" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <script>
-      // 主题跟随系统：系统切深色时页面即时跟随
+      // 主题：默认跟随系统，也可在「接口 · 语音」里手动锁浅色 / 深色
       (function () {
         var mq = window.matchMedia("(prefers-color-scheme: dark)");
         var apply = function () {
-          document.documentElement.classList.toggle("dark", mq.matches);
+          var forced = "";
+          try { forced = localStorage.getItem("amarice_theme") || ""; } catch (e) {}
+          var dark = forced === "dark" || (forced !== "light" && mq.matches);
+          document.documentElement.classList.toggle("dark", dark);
         };
         apply();
         if (mq.addEventListener) mq.addEventListener("change", apply);
         else if (mq.addListener) mq.addListener(apply);
+        document.addEventListener("visibilitychange", apply);
+        window.__amariceApplyTheme = apply;
       })();
     </script>
     <meta name="description" content="Amarice——一个随时在线的朋友，陪你聊天、写同人文。" />
@@ -32,7 +37,7 @@
     <script src="./local-api.js?v=7"></script>
     <script type="module" crossorigin src="./assets/amarice-v2.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-m99VBvFI.css">
-    <link rel="stylesheet" href="./pet.css?v=3">
+    <link rel="stylesheet" href="./pet.css?v=4">
   </head>
   <body>
     <div id="root"></div>
