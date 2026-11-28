@@ -45,9 +45,90 @@
     mmModel: 'speech-2.5-hd-preview',
     visBase: 'https://api.minimaxi.com/v1',
     visKey: '',
-    visModel: 'MiniMax-M3'
+    visModel: 'MiniMax-M3',
+    searchProvider: 'bocha',
+    searchKey: '',
+    searchBase: ''
   }, $ls(CFG_KEY, {}));
   function saveCfg() { $save(CFG_KEY, cfg); }
+
+
+
+  /* ---------- Word / Excel 解析 ---------- */
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var sc = document.createElement('script');
+      sc.src = src; sc.onload = function () { res(); }; sc.onerror = function () { rej(new Error('脚本加载失败')); };
+      document.head.appendChild(sc);
+    });
+  }
+  async function docxText(file) {
+    if (!window.mammoth) await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js');
+    if (!window.mammoth) throw new Error('Word 解析器没加载起来');
+    var buf = await file.arrayBuffer();
+    var out = await window.mammoth.extractRawText({ arrayBuffer: buf });
+    return String((out && out.value) || '').replace(/\n{3,}/g, '\n\n');
+  }
+  async function xlsxText(file) {
+    if (!window.XLSX) await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    var buf = await file.arrayBuffer();
+    var wb = window.XLSX.read(buf, { type: 'array' });
+    var parts = [];
+    wb.SheetNames.slice(0, 6).forEach(function (name) {
+      var csv = window.XLSX.utils.sheet_to_csv(wb.Sheets[name]).trim();
+      if (csv) parts.push('【工作表：' + name + '】\n' + csv);
+    });
+    return parts.join('\n\n');
+  }
+
+  /* ---------- 联网搜索 ---------- */
+  function searchReady() { return !!(cfg.searchKey || '').trim(); }
+  async function searchWeb(q) {
+    var key = (cfg.searchKey || '').trim();
+    if (!key) { var e0 = new Error('没填搜索 Key'); e0.code = 'NO_KEY'; throw e0; }
+    var prov = cfg.searchProvider || 'bocha';
+    var base = (cfg.searchBase || '').replace(/\/+$/, '');
+    var ac = new AbortController();
+    var tm = setTimeout(function () { try { ac.abort(); } catch (e) {} }, 15000);
+    try {
+      if (prov === 'tavily') {
+        var t = await (window.__AMARICE_ORIG_FETCH || fetch)(base || 'https://api.tavily.com/search', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ac.signal,
+          body: JSON.stringify({ api_key: key, query: q, max_results: 8, search_depth: 'basic', include_answer: false })
+        });
+        var tj = await t.json();
+        if (!t.ok) throw new Error((tj && tj.detail && (tj.detail.error || tj.detail)) || ('HTTP ' + t.status));
+        return (tj.results || []).map(function (r) { return { title: r.title, url: r.url, snippet: r.content }; });
+      }
+      if (prov === 'serper') {
+        var s1 = await (window.__AMARICE_ORIG_FETCH || fetch)(base || 'https://google.serper.dev/search', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-KEY': key }, signal: ac.signal,
+          body: JSON.stringify({ q: q, num: 8, gl: 'cn', hl: 'zh-cn' })
+        });
+        var sj = await s1.json();
+        if (!s1.ok) throw new Error((sj && sj.message) || ('HTTP ' + s1.status));
+        return (sj.organic || []).map(function (r) { return { title: r.title, url: r.link, snippet: r.snippet }; });
+      }
+      var b = await (window.__AMARICE_ORIG_FETCH || fetch)(base || 'https://api.bochaai.com/v1/web-search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key }, signal: ac.signal,
+        body: JSON.stringify({ query: q, summary: true, count: 8, freshness: 'noLimit' })
+      });
+      var bj = await b.json();
+      if (!b.ok || (bj.code && String(bj.code) !== '200' && String(bj.code) !== '0')) {
+        throw new Error((bj && bj.message) || ('HTTP ' + b.status));
+      }
+      var list = (bj.data && bj.data.webPages && bj.data.webPages.value) || [];
+      return list.map(function (r) { return { title: r.name, url: r.url, snippet: r.summary || r.snippet }; });
+    } finally { clearTimeout(tm); }
+  }
+  function formatSearchCtx(q, rows) {
+    if (!rows || !rows.length) return '（这次没搜到结果）';
+    var out = [];
+    rows.slice(0, 8).forEach(function (r, i) {
+      out.push((i + 1) + '. ' + (r.title || '') + '\\n' + String(r.snippet || '').replace(/\\s+/g, ' ').slice(0, 500) + '\\n来源：' + (r.url || ''));
+    });
+    return out.join('\\n\\n');
+  }
 
   /* ---------- 本地会话存储 ---------- */
   function loadConvs() { var a = $ls(CONV_KEY, []); return Array.isArray(a) ? a : []; }
@@ -64,14 +145,19 @@
   function nextMsgId() { return Number(String(Date.now()).slice(-9)) + Math.floor(Math.random() * 90); }
 
   /* ---------- 系统提示 ---------- */
-  function buildSystem(mode, deep, web) {
+  function buildSystem(mode, deep, web, searchCtx) {
     var t = new Date();
     var parts = [PERSONA];
     parts.push('现在的时间是 ' + t.toLocaleString('zh-CN', { hour12: false }) + '。');
     if (mode === 'fanfic') parts.push('当前是「写文」模式：用户想写同人文/小说，你要按正文写，有场景、有对话、有心理，不要写成提纲。');
     else parts.push('当前是「闲聊」模式：像朋友一样聊天。');
     if (deep) parts.push('用户开启了深度思考：先在内部想清楚再答，结论要明确。');
-    if (web) parts.push('用户开了联网开关，但本地模式没有联网能力，信息可能过时，需要时请如实说明。');
+    if (searchCtx) {
+      parts.push('下面是刚刚联网搜到的资料（可能不完整，也可能有错，自己判断）：\n' + searchCtx);
+      parts.push('回答时优先依据这些资料；提到具体信息就把链接一起给出来。如果这些资料跟小汐的问题对不上，就直接说没搜到，别硬编。');
+    } else if (web) {
+      parts.push('小汐开了联网开关，但这次没拿到搜索结果；如果问题需要最新信息，就如实说现在搜不到，别装作知道。');
+    }
     return parts.join('\n');
   }
 
@@ -228,6 +314,22 @@
       imgDesc = await describeImage(body.attachment.url || '');
     }
 
+    var searchCtx = '';
+    if (body.webSearch) {
+      var q = String(body.message || '').slice(0, 300);
+      try {
+        if (!searchReady()) throw Object.assign(new Error('没填搜索 Key'), { code: 'NO_KEY' });
+        toast('正在联网搜索…');
+        var rows = await searchWeb(q);
+        searchCtx = formatSearchCtx(q, rows);
+        if (!rows.length) toast('这次没搜到结果，换个说法再试');
+      } catch (err) {
+        searchCtx = '';
+        if (err && err.code === 'NO_KEY') toast('联网要一个搜索 Key，点「接口 · 语音」填上就能用');
+        else toast('联网失败：' + ((err && err.message) || err));
+      }
+    }
+
     return sseStream(function (send, close) {
       function fail(msg) {
         var line = msg + ' 点右上角「接口 · 语音」检查一下 Key 和地址。';
@@ -266,9 +368,9 @@
       upsertConv(conv);
 
       send({ type: 'meta', conversationId: conv.id });
-      send({ type: 'status', text: body.webSearch ? '正在联网…' : 'Amarice 正在输入…' });
+      send({ type: 'status', text: body.webSearch ? (searchCtx ? '联网搜到了，正在整理…' : '正在联网…') : 'Amarice 正在输入…' });
 
-      var msgs = [{ role: 'system', content: buildSystem(body.mode, body.deepThinking, body.webSearch) }]
+      var msgs = [{ role: 'system', content: buildSystem(body.mode, body.deepThinking, body.webSearch, searchCtx) }]
         .concat(conv.messages.slice(-30).map(function (m) {
           return { role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content };
         }));
@@ -400,6 +502,9 @@
     } else {
       try {
         if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) text = await pdfText(file);
+        else if (/wordprocessingml|msword/i.test(file.type) || /\.docx$/i.test(file.name)) text = await docxText(file);
+        else if (/\.doc$/i.test(file.name)) text = '（这是老版 .doc，浏览器里读不了，麻烦用 Word 另存为 .docx 再发一次）';
+        else if (/\.(xlsx|xls)$/i.test(file.name)) text = await xlsxText(file);
         else text = await file.text();
       } catch (e) { text = ''; }
     }
@@ -486,7 +591,7 @@
 
   function buildPanel() {
     var mask = h('<div class="am-mask"><div class="am-card">' +
-      '<h2>接口 · 语音设置</h2>' +
+      '<h2>接口 · 语音 · 联网</h2>' +
       '<p class="tip">聊天直连 DeepSeek，语音直连 MiniMax；所有 Key 只存在这台设备的浏览器里，不会上传。</p>' +
       '<div class="am-row"><label>明暗主题</label><select id="amTheme"><option value="auto">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select></div>' +
       '<div class="am-row"><label>DeepSeek API Key</label><input id="amKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
@@ -499,6 +604,10 @@
       '<div class="am-row"><label>看图（可选；填了才认得出你发的图片，默认借 MiniMax 的 Key）</label></div>' +
       '<div class="am-grid am-row"><div><label>看图模型</label><input id="amVisModel" type="text" placeholder="MiniMax-M3"></div><div><label>看图接口</label><input id="amVisBase" type="text" placeholder="https://api.minimaxi.com/v1"></div></div>' +
       '<div class="am-row"><label>看图 Key（留空就用上面的 MiniMax Key）</label><input id="amVisKey" type="password" placeholder="可留空" autocomplete="off"></div>' +
+      '<p class="tip" style="margin-top:6px">联网：打开「联网」开关前，先在这里选一个搜索服务、填上 Key。</p>' +
+      '<div class="am-row"><label>搜索服务</label><select id="amSearchProvider"><option value="bocha">博查 Bocha（国内可直连，推荐）</option><option value="tavily">Tavily</option><option value="serper">Serper（Google 结果）</option></select></div>' +
+      '<div class="am-row"><label>搜索 Key</label><input id="amSearchKey" type="password" placeholder="去对应官网申请一个 API Key" autocomplete="off"></div>' +
+      '<div class="am-row"><label>搜索接口地址（一般不用改）</label><input id="amSearchBase" type="text" placeholder="留空就用默认地址"></div>' +
       '<div class="am-switch"><span>回复自动朗读（用克隆音色）</span><input id="amAutoSpeak" type="checkbox"></div>' +
       '<div class="am-row"><label>语速 <span id="amRateVal"></span></label><input id="amRate" type="range" min="0.7" max="1.6" step="0.05" style="width:100%"></div>' +
       '<div class="am-switch"><span>语音说完自动发送</span><input id="amAutoSend" type="checkbox"></div>' +
@@ -532,6 +641,9 @@
     document.getElementById('amVisModel').value = cfg.visModel || '';
     document.getElementById('amVisBase').value = cfg.visBase || '';
     document.getElementById('amVisKey').value = cfg.visKey || '';
+    document.getElementById('amSearchProvider').value = cfg.searchProvider || 'bocha';
+    document.getElementById('amSearchKey').value = cfg.searchKey || '';
+    document.getElementById('amSearchBase').value = cfg.searchBase || '';
     document.getElementById('amAutoSpeak').checked = !!cfg.autoSpeak;
     document.getElementById('amRate').value = cfg.rate || 0.95;
     document.getElementById('amRateVal').textContent = Number(cfg.rate || 0.95).toFixed(2) + '×';
@@ -542,6 +654,9 @@
     cfg.base = document.getElementById('amBase').value.trim() || 'https://api.deepseek.com/v1';
     cfg.model = document.getElementById('amModel').value.trim() || 'deepseek-chat';
     cfg.useReasoner = document.getElementById('amReasoner').checked;
+    cfg.searchProvider = document.getElementById('amSearchProvider').value;
+    cfg.searchKey = document.getElementById('amSearchKey').value.trim();
+    cfg.searchBase = document.getElementById('amSearchBase').value.trim();
     cfg.autoSpeak = document.getElementById('amAutoSpeak').checked;
     cfg.rate = Number(document.getElementById('amRate').value) || 0.95;
     var theme = document.getElementById('amTheme').value;
