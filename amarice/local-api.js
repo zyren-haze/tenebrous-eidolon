@@ -109,7 +109,7 @@
         if (!s1.ok) throw new Error((sj && sj.message) || ('HTTP ' + s1.status));
         return (sj.organic || []).map(function (r) { return { title: r.title, url: r.link, snippet: r.snippet }; });
       }
-      var b = await (window.__AMARICE_ORIG_FETCH || fetch)(base || 'https://api.bochaai.com/v1/web-search', {
+      var b = await (window.__AMARICE_ORIG_FETCH || fetch)(base || 'https://api.bocha.cn/v1/web-search', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key }, signal: ac.signal,
         body: JSON.stringify({ query: q, summary: true, count: 8, freshness: 'noLimit' })
       });
@@ -606,7 +606,7 @@
       '<div class="am-row"><label>看图 Key（留空就用上面的 MiniMax Key）</label><input id="amVisKey" type="password" placeholder="可留空" autocomplete="off"></div>' +
       '<p class="tip" style="margin-top:6px">联网：打开「联网」开关前，先在这里选一个搜索服务、填上 Key。</p>' +
       '<div class="am-row"><label>搜索服务</label><select id="amSearchProvider"><option value="bocha">博查 Bocha（国内可直连，推荐）</option><option value="tavily">Tavily</option><option value="serper">Serper（Google 结果）</option></select></div>' +
-      '<div class="am-row"><label>搜索 Key</label><input id="amSearchKey" type="password" placeholder="去对应官网申请一个 API Key" autocomplete="off"></div>' +
+      '<div class="am-row"><label>搜索 Key（博查：open.bochaai.com → 控制台 → API Key）</label><input id="amSearchKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
       '<div class="am-row"><label>搜索接口地址（一般不用改）</label><input id="amSearchBase" type="text" placeholder="留空就用默认地址"></div>' +
       '<div class="am-switch"><span>回复自动朗读（用克隆音色）</span><input id="amAutoSpeak" type="checkbox"></div>' +
       '<div class="am-row"><label>语速 <span id="amRateVal"></span></label><input id="amRate" type="range" min="0.7" max="1.6" step="0.05" style="width:100%"></div>' +
