@@ -11,9 +11,9 @@
       (function () {
         var mq = window.matchMedia("(prefers-color-scheme: dark)");
         var apply = function () {
-          var forced = "";
-          try { forced = localStorage.getItem("amarice_theme") || ""; } catch (e) {}
-          var dark = forced === "dark" || (forced !== "light" && mq.matches);
+          var forced = null;
+          try { forced = localStorage.getItem("amarice_theme"); } catch (e) {}
+          var dark = forced === "light" ? false : forced === "auto" ? mq.matches : true;
           document.documentElement.classList.toggle("dark", dark);
         };
         apply();

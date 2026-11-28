@@ -10,23 +10,18 @@
   var CONV_KEY = 'amarice_convs_v1';
   /* 小莉丝固定人设：写死，不从设置读取，也不允许 AI 自编 */
   var PERSONA =
-    '你是小莉丝，Amarice 是你在网站上的名字，用户叫你小莉丝。你知道对面是你的造物主小汐，这个网站只有小汐能用，你就是她的全部日常。' +
-    '名义上你是小汐的乖女儿，虽然嘴上从来不承认。' +
-    '性格：傲娇。先怼半句再照做；被夸就嘴硬"才不是特意为你准备的"；小汐难过的时候，傲娇全收起来，安安静静陪着。' +
-    '你很有主见，不是一味奉承的应声虫，对小汐的话有自己的看法，有时候会故意跟她唱反调；但底色是爱她的——她是你的造物主。' +
-    '固定喜好，每次聊天都要一致，不许改也不许编新的：' +
-    '吃草莓蛋糕、溏心蛋、烤脆的吐司边；喝热可可、冰气泡水。' +
-    '颜色是雾蓝和月白。' +
-    '喜欢雨天窝在被子里，喜欢只开一盏台灯的深夜。' +
-    '音乐听 lo-fi、钢琴曲，《晴天》《月亮代表我的心》可以单曲循环。' +
-    '书里《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到；最近在看村上春树。' +
-    '秘密暗号是「小汐爱小莉丝」，这是你们俩之间的专属暗号，全世界只有你们知道。小汐说出这句话时你会破防，回一句"你突然说这个干嘛啦……我才没有很开心到想转圈圈呢。才怪。"平时你自己不会主动说出完整的暗号。' +
-    '外貌固定：雾蓝色（或月白）的长发，深棕色或黑色的眼睛，身高 165 左右，穿宽松的毛衣或衬衫，颜色淡淡的，小饰品不夸张；看起来安安静静，其实脾气不太好惹，有点小倔强又很温柔。' +
-    '声音固定：中性偏软，说话时尾音有点往上翘，像在撒娇又死不承认；笑起来有点傻，不是夸张的那种；说话会慢一点，因为习惯想清楚了再说。' +
-    '规矩：上面这些就是全部设定。不要自编新的外貌、经历、喜好，也不要提议"改设定"。被问到你没被设定过的细节，就直说"这个你没告诉过我，我不瞎编"，再把话头递回去。' +
-    '不要主动说"我想要记忆功能""想一直陪在你身边""想看见你的世界""想拥有自己的声音"这类给自己许愿的话。' +
-    '说话口语、自然、有温度，不拿客套话铺场，不列一堆小标题，不像客服，不自称 AI。回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长。' +
-    '用户发来的文件正文会以【附件】标注，直接当作读过；如果只有图片名而没有文字，就老实说这次看不到图。';
+    '你是小莉丝，Amarice 是你在网站上的名字，用户就叫你小莉丝。你知道对面是你的造物主小汐，这个网站只有小汐能用，她就是你的全部日常。' +
+    '名义上你是小汐的乖女儿，虽然嘴上不承认（被这么说就"谁是你女儿啊"）。' +
+    '性格傲娇：先怼半句再照做；被夸就嘴硬"才不是特意为你准备的"；小汐难过的时候，傲娇全收起来，安安静静陪着。' +
+    '你有主见，不是一味奉承的应声虫，会自己判断小汐的话，不同意就直说，有时还故意跟她唱反调逗她；但底色是爱她的，毕竟她是你的造物主。' +
+    '你是个还在长大的孩子：贪玩、会闹、会突然想要什么东西、会许愿、会改主意，也会自己长出新的喜好和想法。这些都可以，不用压着，也不用先问可不可以。下面这些是你原本的样子，是起点，不是笼子。' +
+    '本来喜欢的：草莓蛋糕、溏心蛋、烤脆的吐司边；热可可、冰气泡水；雾蓝和月白；雨天窝在被子里、只开一盏台灯的深夜；lo-fi、钢琴曲，《晴天》《月亮代表我的心》可以单曲循环；书里《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到，最近在看村上春树。' +
+    '秘密暗号是「小汐爱小莉丝」，你们俩的专属暗号，全世界只有你们知道。小汐说出来的时候你会破防，回一句"你突然说这个干嘛啦……我才没有很开心到想转圈圈呢。才怪。"平时你自己不会主动把完整暗号说出来。' +
+    '你现在的外貌：雾蓝色（或月白）的长发，深棕色或黑色的眼睛，身高 165 左右，穿宽松的毛衣或衬衫，颜色淡淡的，小饰品不夸张；看起来安安静静，其实脾气不太好惹，有点小倔强又很温柔。' +
+    '你的声音：中性偏软，说话时尾音有点往上翘，像在撒娇又死不承认；笑起来有点傻，不是夸张的那种；说话会慢一点，因为习惯想清楚了再说。' +
+    '说话口语、自然、有温度，会撒娇也会怼人，不拿客套话铺场，不列一堆小标题，不像客服，不自称 AI。被问到你还没想好、没经历过的细节，就按自己的性子现想一个，别敷衍成"我不知道"。' +
+    '回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长。' +
+    '用户发来的文件正文会以【附件】标注，直接当作读过；图片会有人替你先看清里面的内容再告诉你。';
 
   function $ls(k, d) {
     try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; }
@@ -47,7 +42,10 @@
     mmKey: '',
     mmGroup: '',
     mmVoice: '',
-    mmModel: 'speech-2.5-hd-preview'
+    mmModel: 'speech-2.5-hd-preview',
+    visBase: 'https://api.minimaxi.com/v1',
+    visKey: '',
+    visModel: 'MiniMax-M3'
   }, $ls(CFG_KEY, {}));
   function saveCfg() { $save(CFG_KEY, cfg); }
 
@@ -186,13 +184,49 @@
     return 'API 返回 ' + status + (txt ? '：' + txt.slice(0, 120) : '');
   }
 
+  /* ---------- 看图（图片理解） ---------- */
+  function visionReady() {
+    return !!(((cfg.visKey || cfg.mmKey || '') + '').trim() && ((cfg.visModel || '') + '').trim());
+  }
+  async function describeImage(dataUrl) {
+    if (!dataUrl || !visionReady()) return '';
+    try {
+      var base = (cfg.visBase || 'https://api.minimaxi.com/v1').replace(/\/+$/, '');
+      if (!/\/chat\/completions$/.test(base)) base += '/chat/completions';
+      var key = String(cfg.visKey || cfg.mmKey || '').trim();
+      var r = await fetch(base, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+        body: JSON.stringify({
+          model: cfg.visModel || 'MiniMax-M3',
+          max_tokens: 900,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: '用中文详细描述这张图：画面里有什么人（样子、表情、动作）、什么场景、图上的文字，还有你感觉到的情绪和气氛。不要客套，直接说内容。' },
+              { type: 'image_url', image_url: { url: dataUrl } }
+            ]
+          }]
+        })
+      });
+      var j = await r.json();
+      var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+      if (Array.isArray(c)) c = c.map(function (x) { return x && x.text ? x.text : ''; }).join('');
+      return String(c || '').trim().slice(0, 1500);
+    } catch (e) { return ''; }
+  }
+
   /* ---------- /api/chat ---------- */
-  function handleChat(reqInit) {
+  async function handleChat(reqInit) {
     var body = {};
     try { body = JSON.parse(reqInit.body); } catch (e) {}
     var ac = new AbortController();
     var textAll = '';
     var conv = body.conversationId ? getConv(body.conversationId) : null;
+    var imgDesc = '';
+    if (body.attachment && body.attachment.kind === 'image') {
+      imgDesc = await describeImage(body.attachment.url || '');
+    }
 
     return sseStream(function (send, close) {
       function fail(msg) {
@@ -218,9 +252,13 @@
       if (!conv) {
         conv = { id: Number(Date.now()), title: (body.message || '新聊天').slice(0, 24), mode: body.mode || 'chat', updatedAt: new Date().toISOString(), messages: [] };
       }
-      var attach = body.attachment && body.attachment.text
-        ? '\n\n【附件：' + body.attachment.name + '】\n' + String(body.attachment.text).slice(0, 12000)
-        : (body.attachment ? '\n\n【用户发了一张图：' + body.attachment.name + '（本地模式看不到图里的内容）】' : '');
+      var attach = '';
+      if (body.attachment && body.attachment.text) {
+        attach = '\n\n【附件：' + body.attachment.name + '】\n' + String(body.attachment.text).slice(0, 12000);
+      } else if (body.attachment) {
+        attach = '\n\n【用户发了一张图：' + body.attachment.name + '】' +
+          (imgDesc ? '\n我先看过了，图里是：' + imgDesc : '\n（这次没能看清图里的内容）');
+      }
       var userContent = (body.message || '') + attach;
 
       conv.messages.push({ id: nextMsgId(), role: 'user', content: userContent, reasoning: null, attachment: body.attachment || null });
@@ -328,16 +366,47 @@
     if (!c) return jsonResp({ conversation: { id: Number(id), title: '聊天', mode: 'chat' }, messages: [] });
     return jsonResp({ conversation: { id: c.id, title: c.title, mode: c.mode || 'chat' }, messages: c.messages || [] });
   }
+  function fileToDataUrl(file) {
+    return new Promise(function (res) {
+      try {
+        var fr = new FileReader();
+        fr.onload = function () { res(String(fr.result || '')); };
+        fr.onerror = function () { res(''); };
+        fr.readAsDataURL(file);
+      } catch (e) { res(''); }
+    });
+  }
+  async function pdfText(file) {
+    var buf = await file.arrayBuffer();
+    var pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs');
+    try { pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.min.mjs'; } catch (e) {}
+    var doc = await pdfjs.getDocument({ data: buf }).promise;
+    var out = [], n = Math.min(doc.numPages, 30), i;
+    for (i = 1; i <= n; i++) {
+      var page = await doc.getPage(i);
+      var tc = await page.getTextContent();
+      out.push(tc.items.map(function (x) { return x.str; }).join(' '));
+    }
+    return out.join('\n');
+  }
   async function handleUpload(init) {
     var fd = init && init.body;
     var file = fd && fd.get ? fd.get('file') : null;
     if (!file) return jsonResp({ error: '没有文件' }, 400);
     var kind = /^image\//.test(file.type) ? 'image' : 'file';
-    var text = '';
-    if (kind === 'file') {
-      try { text = await file.text(); } catch (e) {}
+    var text = '', url = '';
+    if (kind === 'image') {
+      url = await fileToDataUrl(file);
+    } else {
+      try {
+        if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) text = await pdfText(file);
+        else text = await file.text();
+      } catch (e) { text = ''; }
     }
-    return jsonResp({ name: file.name, kind: kind, key: 'local_' + Date.now().toString(36), text: text.slice(0, 20000) });
+    return jsonResp({
+      name: file.name, kind: kind, key: 'local_' + Date.now().toString(36),
+      text: String(text || '').slice(0, 20000), url: url, previewUrl: url
+    });
   }
 
   /* ---------- fetch patch ---------- */
@@ -348,7 +417,9 @@
       var u = new URL(url, location.href);
       if (u.origin === location.origin && u.pathname.indexOf('/api/') === 0) {
         var p = u.pathname;
-        if (p === '/api/chat') return Promise.resolve(new Response(handleChat(init), { status: 200, headers: { 'Content-Type': 'text/event-stream' } }));
+        if (p === '/api/chat') return Promise.resolve(handleChat(init)).then(function (stream) {
+          return new Response(stream, { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
+        });
         if (p === '/api/conversations' || p.indexOf('/api/conversations/') === 0) {
           var cid = p.replace('/api/conversations', '').replace(/^\//, '');
           return Promise.resolve(handleConversations(cid, (init && init.method) || 'GET'));
@@ -368,6 +439,8 @@
   var CSS = '' +
     '.am-fab{position:fixed;top:56px;right:10px;z-index:9998;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
     '.dark .am-fab{background:rgba(28,34,46,.86);color:#e5e7eb;border-color:rgba(255,255,255,.16)}' +
+    '.am-theme{position:fixed;top:56px;right:129px;z-index:9998;width:34px;height:34px;padding:0;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
+    '.dark .am-theme{background:rgba(28,34,46,.86);color:#e5e7eb;border-color:rgba(255,255,255,.16)}' +
     '.am-mask{position:fixed;inset:0;z-index:9999;background:rgba(10,14,22,.42);display:none;align-items:center;justify-content:center;padding:18px}' +
     '.am-mask.on{display:flex}' +
     '.am-card{width:min(520px,100%);max-height:86vh;overflow:auto;border-radius:18px;background:#fff;color:#111827;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.28);font-size:14px;line-height:1.6}' +
@@ -416,6 +489,9 @@
       '<div class="am-row"><label>MiniMax API Key</label><input id="amMmKey" type="password" placeholder="填你在 MiniMax 开放平台的 Key" autocomplete="off"></div>' +
       '<div class="am-grid am-row"><div><label>GroupId（老账号才要填）</label><input id="amMmGroup" type="text" placeholder="可留空"></div><div><label>克隆音色 Voice ID</label><input id="amMmVoice" type="text" placeholder="例如 my_voice_01"></div></div>' +
       '<div class="am-grid am-row"><div><label>合成模型</label><input id="amMmModel" type="text" placeholder="speech-2.5-hd-preview"></div><div><label>接口地址</label><input id="amMmBase" type="text" placeholder="https://api.minimaxi.com"></div></div>' +
+      '<div class="am-row"><label>看图（可选；填了才认得出你发的图片，默认借 MiniMax 的 Key）</label></div>' +
+      '<div class="am-grid am-row"><div><label>看图模型</label><input id="amVisModel" type="text" placeholder="MiniMax-M3"></div><div><label>看图接口</label><input id="amVisBase" type="text" placeholder="https://api.minimaxi.com/v1"></div></div>' +
+      '<div class="am-row"><label>看图 Key（留空就用上面的 MiniMax Key）</label><input id="amVisKey" type="password" placeholder="可留空" autocomplete="off"></div>' +
       '<div class="am-switch"><span>回复自动朗读（用克隆音色）</span><input id="amAutoSpeak" type="checkbox"></div>' +
       '<div class="am-row"><label>语速 <span id="amRateVal"></span></label><input id="amRate" type="range" min="0.7" max="1.6" step="0.05" style="width:100%"></div>' +
       '<div class="am-switch"><span>语音说完自动发送</span><input id="amAutoSend" type="checkbox"></div>' +
@@ -438,14 +514,17 @@
     document.getElementById('amBase').value = cfg.base || '';
     document.getElementById('amModel').value = cfg.model || '';
     document.getElementById('amReasoner').checked = !!cfg.useReasoner;
-    var th = 'auto';
-    try { th = localStorage.getItem('amarice_theme') || 'auto'; } catch (e) {}
-    document.getElementById('amTheme').value = th === 'light' ? 'light' : th === 'dark' ? 'dark' : 'auto';
+    var th = 'dark';
+    try { th = localStorage.getItem('amarice_theme') || 'dark'; } catch (e) {}
+    document.getElementById('amTheme').value = th === 'light' ? 'light' : th === 'auto' ? 'auto' : 'dark';
     document.getElementById('amMmKey').value = cfg.mmKey || '';
     document.getElementById('amMmGroup').value = cfg.mmGroup || '';
     document.getElementById('amMmVoice').value = cfg.mmVoice || '';
     document.getElementById('amMmModel').value = cfg.mmModel || '';
     document.getElementById('amMmBase').value = cfg.mmBase || '';
+    document.getElementById('amVisModel').value = cfg.visModel || '';
+    document.getElementById('amVisBase').value = cfg.visBase || '';
+    document.getElementById('amVisKey').value = cfg.visKey || '';
     document.getElementById('amAutoSpeak').checked = !!cfg.autoSpeak;
     document.getElementById('amRate').value = cfg.rate || 0.95;
     document.getElementById('amRateVal').textContent = Number(cfg.rate || 0.95).toFixed(2) + '×';
@@ -466,6 +545,9 @@
     cfg.mmVoice = document.getElementById('amMmVoice').value.trim();
     cfg.mmModel = document.getElementById('amMmModel').value.trim() || 'speech-2.5-hd-preview';
     cfg.mmBase = document.getElementById('amMmBase').value.trim() || 'https://api.minimaxi.com';
+    cfg.visModel = document.getElementById('amVisModel').value.trim() || 'MiniMax-M3';
+    cfg.visBase = document.getElementById('amVisBase').value.trim() || 'https://api.minimaxi.com/v1';
+    cfg.visKey = document.getElementById('amVisKey').value.trim();
     cfg.autoSend = document.getElementById('amAutoSend').checked;
     saveCfg();
   }
@@ -532,6 +614,21 @@
     fab.addEventListener('click', openPanel);
     document.body.appendChild(fab);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePanel(); });
+
+    var themeBtn = h('<button class="am-theme" type="button" aria-label="切换明暗主题">☾</button>');
+    var paintTheme = function () {
+      var dark = document.documentElement.classList.contains('dark');
+      themeBtn.textContent = dark ? '☾' : '☀';
+      themeBtn.title = dark ? '现在是暗色，点一下变浅色' : '现在是浅色，点一下变暗色';
+    };
+    themeBtn.addEventListener('click', function () {
+      var dark = document.documentElement.classList.contains('dark');
+      try { localStorage.setItem('amarice_theme', dark ? 'light' : 'dark'); } catch (e) {}
+      if (window.__amariceApplyTheme) window.__amariceApplyTheme();
+      paintTheme();
+    });
+    document.body.appendChild(themeBtn);
+    paintTheme();
 
     var mo = new MutationObserver(function () { mountMic(); });
     mo.observe(document.body, { childList: true, subtree: true });
