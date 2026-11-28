@@ -152,6 +152,14 @@ function qL({ speaking: e }) {
   const up = () => {
     if (!drag.current) return;
     drag.current = null; setD(1.2); setM("idle");
+    if (moved.current) {
+      const r = rectOf();
+      if (r && r.left < window.innerWidth - 96 && r.right > 40) {
+        const toRight = r.left + r.width / 2 > window.innerWidth / 2;
+        const dx = toRight ? window.innerWidth - 8 - r.right : 8 - r.left;
+        setD(0.7); setPos(P.current.x + dx, P.current.y);
+      }
+    }
     if (moved.current && Math.random() < 0.6) say(rnd(PZ_DRAG), 2400);
   };
   const poke = () => {

@@ -275,31 +275,43 @@
     return !!(((cfg.visKey || cfg.mmKey || '') + '').trim() && ((cfg.visModel || '') + '').trim());
   }
   async function describeImage(dataUrl) {
-    if (!dataUrl || !visionReady()) return '';
-    try {
-      var base = (cfg.visBase || 'https://api.minimaxi.com/v1').replace(/\/+$/, '');
-      if (!/\/chat\/completions$/.test(base)) base += '/chat/completions';
-      var key = String(cfg.visKey || cfg.mmKey || '').trim();
-      var r = await fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
-        body: JSON.stringify({
-          model: cfg.visModel || 'MiniMax-M3',
-          max_tokens: 900,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: '用中文详细描述这张图：画面里有什么人（样子、表情、动作）、什么场景、图上的文字，还有你感觉到的情绪和气氛。不要客套，直接说内容。' },
-              { type: 'image_url', image_url: { url: dataUrl } }
-            ]
-          }]
-        })
-      });
-      var j = await r.json();
-      var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-      if (Array.isArray(c)) c = c.map(function (x) { return x && x.text ? x.text : ''; }).join('');
-      return String(c || '').trim().slice(0, 1500);
-    } catch (e) { return ''; }
+    if (!dataUrl) return '';
+    var key = String(cfg.visKey || cfg.mmKey || '').trim();
+    if (!key) { toast('看图需要一个视觉模型的 Key（MiniMax 的 Key 就能用，填在「接口 · 语音」里）'); return ''; }
+    var base = (cfg.visBase || 'https://api.minimaxi.com/v1').replace(/\/+$/, '');
+    if (!/\/chat\/completions$/.test(base)) base += '/chat/completions';
+    var raw = String(dataUrl).replace(/^data:[^;]+;base64,/, '');
+    var models = [cfg.visModel || 'MiniMax-M3', 'MiniMax-VL-01', 'MiniMax-M3'];
+    var urls = [dataUrl, raw, dataUrl];
+    var lastErr = '';
+    for (var i = 0; i < models.length; i++) {
+      try {
+        var r = await fetch(base, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+          body: JSON.stringify({
+            model: models[i],
+            max_tokens: 900,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: '用中文详细描述这张图：画面里有什么人（样子、表情、动作）、什么场景、图上的文字，还有你感觉到的情绪和气氛。不要客套，直接说内容。' },
+                { type: 'image_url', image_url: { url: urls[i] } }
+              ]
+            }]
+          })
+        });
+        var j = await r.json();
+        if (!r.ok) { lastErr = (j && j.base_resp && j.base_resp.status_msg) || (j && j.error && j.error.message) || ('HTTP ' + r.status); continue; }
+        var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+        if (Array.isArray(c)) c = c.map(function (x) { return x && x.text ? x.text : ''; }).join('');
+        c = String(c || '').trim();
+        if (c) return c.slice(0, 1500);
+        lastErr = '模型没返回内容';
+      } catch (e) { lastErr = (e && e.message) || String(e); }
+    }
+    if (lastErr) toast('看图失败：' + lastErr);
+    return '';
   }
 
   /* ---------- /api/chat ---------- */
