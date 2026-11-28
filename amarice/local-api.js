@@ -349,7 +349,32 @@
         lastErr = '模型没返回内容';
       } catch (e) { lastErr = (e && e.message) || String(e); }
     }
-    if (lastErr) toast('看图失败：' + lastErr);
+    // MiniMax 没成功，再用智谱兜底（联网那把 Key 就能看）
+    if (!zpKey && cfg.searchProvider === 'zhipu') zpKey = String(cfg.searchKey || '').trim();
+    if (zpKey) {
+      try {
+        var zr2 = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + zpKey },
+          body: JSON.stringify({
+            model: 'glm-4v-flash',
+            messages: [{ role: 'user', content: [
+              { type: 'image_url', image_url: { url: dataUrl } },
+              { type: 'text', text: prompt }
+            ] }]
+          })
+        });
+        var zj2 = await zr2.json();
+        if (zr2.ok) {
+          var zc2 = pick(zj2);
+          if (zc2) return zc2.slice(0, 1500);
+          lastErr = (lastErr ? lastErr + ' / ' : '') + '智谱没返回内容';
+        } else {
+          lastErr = (lastErr ? lastErr + ' / ' : '') + ((zj2 && zj2.error && (zj2.error.message || zj2.error.code)) || ('智谱 HTTP ' + zr2.status));
+        }
+      } catch (e) { lastErr = (lastErr ? lastErr + ' / ' : '') + '智谱 ' + ((e && e.message) || e); }
+    }
+    if (lastErr) toast('看图失败：' + lastErr, 4500);
     return '';
   }
 
@@ -658,11 +683,11 @@
     '@media (max-width:520px){.am-card input[type=text],.am-card input[type=password],.am-card textarea,.am-card select{font-size:16px}.am-toast{bottom:150px;max-width:78vw;text-align:center}}';
 
   function h(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
-  function toast(msg) {
+  function toast(msg, ms) {
     var t = document.querySelector('.am-toast');
     if (!t) { t = h('<div class="am-toast"></div>'); document.body.appendChild(t); }
     t.textContent = msg; t.classList.add('on');
-    clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('on'); }, 1800);
+    clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('on'); }, ms || 1800);
   }
 
   function buildPanel() {
@@ -682,18 +707,33 @@
       '<div class="am-row"><label>看图 Key（留空就用上面的 MiniMax Key）</label><input id="amVisKey" type="password" placeholder="可留空" autocomplete="off"></div>' +
       '<p class="tip" style="margin-top:6px">联网：打开「联网」开关前，先在这里选一个搜索服务、填上 Key。</p>' +
       '<div class="am-row"><label>搜索服务</label><select id="amSearchProvider"><option value="zhipu">智谱 GLM（国内，注册即用）</option><option value="bocha">博查 Bocha</option><option value="tavily">Tavily</option><option value="serper">Serper（Google 结果）</option></select></div>' +
-      '<div class="am-row"><label>搜索 Key（博查：open.bochaai.com → 控制台 → API Key）</label><input id="amSearchKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
+      '<div class="am-row"><label>搜索 Key（智谱：open.bigmodel.cn → API Key；用博查就填博查的）</label><input id="amSearchKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
       '<div class="am-row"><label>搜索接口地址（一般不用改）</label><input id="amSearchBase" type="text" placeholder="留空就用默认地址"></div>' +
       '<div class="am-switch"><span>回复自动朗读（用克隆音色）</span><input id="amAutoSpeak" type="checkbox"></div>' +
       '<div class="am-row"><label>语速 <span id="amRateVal"></span></label><input id="amRate" type="range" min="0.7" max="1.6" step="0.05" style="width:100%"></div>' +
       '<div class="am-switch"><span>语音说完自动发送</span><input id="amAutoSend" type="checkbox"></div>' +
-      '<div class="am-actions"><button class="am-btn" id="amTestVoice">试听</button><button class="am-btn main" id="amClose">保存并关闭</button></div>' +
+      '<div class="am-actions"><button class="am-btn" id="amTestVoice">试听</button><button class="am-btn" id="amTestVision">测一下看图</button></div>' +
+      '<div class="am-actions" style="margin-top:10px"><button class="am-btn main" id="amClose">保存并关闭</button></div>' +
       '</div></div>');
     document.body.appendChild(mask);
     mask.addEventListener('click', function (e) { if (e.target === mask) closePanel(); });
     document.getElementById('amClose').addEventListener('click', function () { readPanel(); closePanel(); toast('已保存'); });
     document.getElementById('amTestVoice').addEventListener('click', function () {
       readPanel(); speak('我是小莉丝。现在能听见我了吗？');
+    });
+    document.getElementById('amTestVision').addEventListener('click', function () {
+      readPanel();
+      try {
+        var cv = document.createElement('canvas'); cv.width = 320; cv.height = 200;
+        var ctx = cv.getContext('2d');
+        ctx.fillStyle = '#2b3a55'; ctx.fillRect(0, 0, 320, 200);
+        ctx.fillStyle = '#ffd166'; ctx.font = 'bold 44px sans-serif'; ctx.fillText('测试 123', 40, 120);
+        var url = cv.toDataURL('image/png');
+      } catch (e) { toast('生成测试图失败：' + e.message, 4000); return; }
+      toast('正在试看图…', 2500);
+      describeImage(url).then(function (d) {
+        if (d) toast('看图通了：' + d.slice(0, 50), 5000);
+      });
     });
     document.getElementById('amRate').addEventListener('input', function () {
       document.getElementById('amRateVal').textContent = Number(this.value).toFixed(2) + '×';
