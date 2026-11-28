@@ -93,12 +93,15 @@ function qL({ speaking: e }) {
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
   const say = (t, ms) => { setL(t); clearTimeout(Tm.current.b); Tm.current.b = setTimeout(() => setL(null), ms || 3200); };
   const setPos = (x, y) => { P.current = { x: x, y: y }; setT({ x: x, y: y }); };
-  const bounds = () => { const w = window.innerWidth, h = window.innerHeight; return { xMin: -Math.max(20, w - 96), xMax: 0, yMin: -Math.max(20, h - 240), yMax: 0 }; };
+  const rectOf = () => { const el = document.querySelector('.pet-wrap'); return el ? el.getBoundingClientRect() : null; };
   const back = (ms) => { clearTimeout(Tm.current.r); Tm.current.r = setTimeout(() => { setM("idle"); }, ms); };
   const walk = () => {
-    const b = bounds(), span = Math.abs(b.xMin) - 20;
-    const target = span > 30 ? b.xMin + 10 + Math.random() * span : 0;
-    setD(Math.max(1.1, Math.min(6, Math.abs(target - P.current.x) / 120)));
+    const r = rectOf(), left = r ? r.left : 300, right = r ? r.right : 380;
+    const canLeft = left - 10, canRight = window.innerWidth - 10 - right;
+    const span = canLeft + canRight;
+    const dx = span > 40 ? -canLeft + 10 + Math.random() * (span - 20) : 0;
+    const target = P.current.x + dx;
+    setD(Math.max(1.1, Math.min(6, Math.abs(dx) / 120)));
     setM("walk"); setPos(target, P.current.y);
     if (Math.random() < 0.5) say(rnd(LL));
     clearTimeout(Tm.current.r); Tm.current.r = setTimeout(() => { setM("idle"); }, 3200 + Math.random() * 2600);
@@ -129,16 +132,19 @@ function qL({ speaking: e }) {
   }, [e]);
   const down = (ev) => {
     clearTimeout(Tm.current.b);
-    drag.current = { sx: ev.clientX, sy: ev.clientY, ox: P.current.x, oy: P.current.y, id: ev.pointerId };
+    const r = ev.currentTarget.getBoundingClientRect();
+    drag.current = { sx: ev.clientX, sy: ev.clientY, ox: P.current.x, oy: P.current.y, id: ev.pointerId, r: r };
     moved.current = false; setD(0);
     try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) {}
   };
   const move = (ev) => {
     if (!drag.current) return;
-    const dx = ev.clientX - drag.current.sx, dy = ev.clientY - drag.current.sy;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved.current = true;
-    const b = bounds();
-    setPos(Math.min(b.xMax, Math.max(b.xMin, drag.current.ox + dx)), Math.min(b.yMax, Math.max(b.yMin, drag.current.oy + dy)));
+    const rawdx = ev.clientX - drag.current.sx, rawdy = ev.clientY - drag.current.sy;
+    if (Math.abs(rawdx) > 4 || Math.abs(rawdy) > 4) moved.current = true;
+    const r = drag.current.r;
+    const dx = Math.min(window.innerWidth - 10 - r.right, Math.max(10 - r.left, rawdx));
+    const dy = Math.min(window.innerHeight - 10 - r.bottom, Math.max(10 - r.top, rawdy));
+    setPos(drag.current.ox + dx, drag.current.oy + dy);
     if (moved.current && M !== "walk") setM("poked");
   };
   const up = () => {
@@ -155,7 +161,7 @@ function qL({ speaking: e }) {
     else if (cnt.current % 3 === 2) eat();
     else { setM("poked"); say(rnd(JL), 2200); back(1000); }
   };
-  return O.jsxs("div", { "code-path": "src/components/chat/Pet.tsx:99:5", className: "pointer-events-none fixed bottom-24 right-3 z-20 flex select-none flex-col items-end md:bottom-8 md:right-6", children: [
+  return O.jsxs("div", { "code-path": "src/components/chat/Pet.tsx:99:5", className: "pet-root", children: [
     L && O.jsx("div", { "code-path": "src/components/chat/Pet.tsx:102:9", className: "msg-enter pointer-events-auto mb-1.5 max-w-40 rounded-2xl rounded-br-sm border border-border bg-card px-3 py-1.5 text-xs leading-5 text-foreground shadow-sm", children: L }, L),
     O.jsx("div", { className: "pointer-events-auto pet-wrap", onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: up, style: { transform: "translate(" + T.x + "px," + T.y + "px)", transition: D > 0 ? "transform " + D + "s linear" : "none", touchAction: "none" }, children:
       O.jsxs("button", { "code-path": "src/components/chat/Pet.tsx:111:7", onClick: poke, "aria-label": "戳戳小莉丝", title: "戳一下，或者拖着我走", className: "group relative block h-24 w-20 cursor-grab active:cursor-grabbing outline-none focus-visible:ring-2 focus-visible:ring-ring md:h-28 md:w-24", style: { WebkitTapHighlightColor: "transparent" }, children: [

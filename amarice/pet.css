@@ -84,3 +84,18 @@
   30% { opacity: 1; }
   100% { transform: translateY(-18px) scale(1.05); opacity: 0; }
 }
+
+.pet-root {
+  position: fixed;
+  right: 12px;
+  bottom: calc(190px + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  user-select: none;
+}
+@media (min-width: 768px) {
+  .pet-root { right: 24px; bottom: 32px; }
+}
