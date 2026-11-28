@@ -287,36 +287,64 @@
   }
   async function describeImage(dataUrl) {
     if (!dataUrl) return '';
-    var key = String(cfg.visKey || cfg.mmKey || '').trim();
-    if (!key) { toast('看图需要一个视觉模型的 Key（MiniMax 的 Key 就能用，填在「接口 · 语音」里）'); return ''; }
+    var mmKey = String(cfg.visKey || cfg.mmKey || '').trim();
+    var zpKey = String((cfg.searchProvider === 'zhipu' ? cfg.searchKey : '') || '').trim();
+    var prompt = '用中文详细描述这张图：画面里有什么人（样子、表情、动作）、什么场景、图上的文字，还有你感觉到的情绪和气氛。不要客套，直接说内容。';
+    var lastErr = '';
+
+    function pick(j) {
+      var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+      if (Array.isArray(c)) c = c.map(function (x) { return x && x.text ? x.text : ''; }).join('');
+      return String(c || '').trim();
+    }
+
+    // 智谱 GLM-4V：联网那把智谱 Key 可以直接拿来看图
+    if (!mmKey && zpKey) {
+      try {
+        var zr = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + zpKey },
+          body: JSON.stringify({
+            model: 'glm-4v-flash',
+            messages: [{ role: 'user', content: [
+              { type: 'image_url', image_url: { url: dataUrl } },
+              { type: 'text', text: prompt }
+            ] }]
+          })
+        });
+        var zj = await zr.json();
+        if (zr.ok) { var zc = pick(zj); if (zc) return zc.slice(0, 1500); lastErr = '智谱没返回内容'; }
+        else lastErr = (zj && zj.error && (zj.error.message || zj.error.code)) || ('HTTP ' + zr.status);
+      } catch (e) { lastErr = (e && e.message) || String(e); }
+    }
+
+    if (!mmKey) {
+      if (lastErr) toast('看图失败：' + lastErr);
+      else toast('看图要一个 Key：填 MiniMax 的 Key，或者用智谱（联网那把 Key 就能看图）');
+      return '';
+    }
     var base = (cfg.visBase || 'https://api.minimaxi.com/v1').replace(/\/+$/, '');
     if (!/\/chat\/completions$/.test(base)) base += '/chat/completions';
     var raw = String(dataUrl).replace(/^data:[^;]+;base64,/, '');
     var models = [cfg.visModel || 'MiniMax-M3', 'MiniMax-VL-01', 'MiniMax-M3'];
     var urls = [dataUrl, raw, dataUrl];
-    var lastErr = '';
     for (var i = 0; i < models.length; i++) {
       try {
         var r = await fetch(base, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + mmKey },
           body: JSON.stringify({
             model: models[i],
             max_tokens: 900,
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: '用中文详细描述这张图：画面里有什么人（样子、表情、动作）、什么场景、图上的文字，还有你感觉到的情绪和气氛。不要客套，直接说内容。' },
-                { type: 'image_url', image_url: { url: urls[i] } }
-              ]
-            }]
+            messages: [{ role: 'user', content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: urls[i] } }
+            ] }]
           })
         });
         var j = await r.json();
         if (!r.ok) { lastErr = (j && j.base_resp && j.base_resp.status_msg) || (j && j.error && j.error.message) || ('HTTP ' + r.status); continue; }
-        var c = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-        if (Array.isArray(c)) c = c.map(function (x) { return x && x.text ? x.text : ''; }).join('');
-        c = String(c || '').trim();
+        var c = pick(j);
         if (c) return c.slice(0, 1500);
         lastErr = '模型没返回内容';
       } catch (e) { lastErr = (e && e.message) || String(e); }
@@ -514,6 +542,31 @@
     }
     return out.join('\n');
   }
+  function loadImg(src) {
+    return new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { res(im); };
+      im.onerror = function () { rej(new Error('图片解码失败')); };
+      im.src = src;
+    });
+  }
+  async function imageDataUrl(file) {
+    var raw = await fileToDataUrl(file);
+    try {
+      var im = await loadImg(raw);
+      var max = 1280;
+      var scale = Math.min(1, max / Math.max(im.width || 1, im.height || 1));
+      var w = Math.round((im.width || max) * scale), h = Math.round((im.height || max) * scale);
+      var cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      var ctx = cv.getContext('2d');
+      ctx.drawImage(im, 0, 0, w, h);
+      var out = cv.toDataURL('image/webp', 0.82);
+      if (!out || out.length < 30) out = cv.toDataURL('image/jpeg', 0.82);
+      return out.length < raw.length ? out : raw;
+    } catch (e) { return raw; }
+  }
+
   async function handleUpload(init) {
     var fd = init && init.body;
     var file = fd && fd.get ? fd.get('file') : null;
@@ -521,7 +574,7 @@
     var kind = /^image\//.test(file.type) ? 'image' : 'file';
     var text = '', url = '';
     if (kind === 'image') {
-      url = await fileToDataUrl(file);
+      url = await imageDataUrl(file);
     } else {
       try {
         if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) text = await pdfText(file);
@@ -624,7 +677,7 @@
       '<div class="am-row"><label>MiniMax API Key</label><input id="amMmKey" type="password" placeholder="填你在 MiniMax 开放平台的 Key" autocomplete="off"></div>' +
       '<div class="am-grid am-row"><div><label>GroupId（老账号才要填）</label><input id="amMmGroup" type="text" placeholder="可留空"></div><div><label>克隆音色 Voice ID</label><input id="amMmVoice" type="text" placeholder="例如 my_voice_01"></div></div>' +
       '<div class="am-grid am-row"><div><label>合成模型</label><input id="amMmModel" type="text" placeholder="speech-2.5-hd-preview"></div><div><label>接口地址</label><input id="amMmBase" type="text" placeholder="https://api.minimaxi.com"></div></div>' +
-      '<div class="am-row"><label>看图（可选；填了才认得出你发的图片，默认借 MiniMax 的 Key）</label></div>' +
+      '<div class="am-row"><label>看图（可选；填了才认得出你发的图片。MiniMax Key 或智谱 Key 都行，看不了会弹原因）</label></div>' +
       '<div class="am-grid am-row"><div><label>看图模型</label><input id="amVisModel" type="text" placeholder="MiniMax-M3"></div><div><label>看图接口</label><input id="amVisBase" type="text" placeholder="https://api.minimaxi.com/v1"></div></div>' +
       '<div class="am-row"><label>看图 Key（留空就用上面的 MiniMax Key）</label><input id="amVisKey" type="password" placeholder="可留空" autocomplete="off"></div>' +
       '<p class="tip" style="margin-top:6px">联网：打开「联网」开关前，先在这里选一个搜索服务、填上 Key。</p>' +
