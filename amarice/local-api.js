@@ -378,11 +378,12 @@
     '.am-btn{flex:1;height:40px;border-radius:11px;border:1px solid rgba(120,130,150,.35);background:transparent;color:inherit;font-size:14px;cursor:pointer;font-family:inherit}' +
     '.am-btn.main{background:#7c6cf0;border-color:#7c6cf0;color:#fff;font-weight:600}' +
     '.am-btn:active{transform:scale(.98)}' +
-    '.am-mic{width:44px;height:44px;flex:none;border-radius:14px;border:1px solid rgba(120,130,150,.32);background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:8px}' +
+    '.am-composer{position:relative}' + '.am-composer textarea{padding-right:36px}' + '.am-mic{position:absolute;right:5px;bottom:5px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(120,130,150,.28);background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.8}' +
     '.am-mic.rec{background:#ef4444;border-color:#ef4444;color:#fff;animation:am-pulse 1.2s infinite}' +
     '@keyframes am-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}' +
     '.am-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:110px;z-index:10000;background:rgba(20,24,32,.92);color:#fff;padding:8px 14px;border-radius:999px;font-size:12px;opacity:0;transition:.25s;pointer-events:none}' +
-    '.am-toast.on{opacity:1}';
+    '.am-toast.on{opacity:1}' +
+    '@media (max-width:520px){.am-card input[type=text],.am-card input[type=password],.am-card textarea,.am-card select{font-size:16px}.am-toast{bottom:150px;max-width:78vw;text-align:center}}';
 
   function h(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
   function toast(msg) {
@@ -474,8 +475,9 @@
     if (document.querySelector('.am-mic')) return;
     var ta = document.querySelector('textarea[aria-label="输入消息"]');
     if (!ta) return;
-    var btn = h('<button class="am-mic" type="button" aria-label="语音输入" title="按一下说话"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z"/><path d="M19 11a7 7 0 01-14 0"/><path d="M12 18v3"/></svg></button>');
-    ta.parentElement.parentElement.insertBefore(btn, ta.parentElement);
+    var btn = h('<button class="am-mic" type="button" aria-label="语音输入" title="按一下说话"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z"/><path d="M19 11a7 7 0 01-14 0"/><path d="M12 18v3"/></svg></button>');
+    ta.parentElement.classList.add('am-composer');
+    ta.parentElement.appendChild(btn);
     btn.addEventListener('click', function () { toggleRec(btn, ta); });
   }
 
