@@ -231,7 +231,11 @@
       origFetch(target.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.key.trim() },
-        body: JSON.stringify({ model: model, messages: msgs, stream: true, temperature: 0.9 }),
+        body: JSON.stringify((function () {
+          var o = { model: model, messages: msgs, stream: true };
+          if (!/reasoner/i.test(model)) o.temperature = 0.9;
+          return o;
+        })()),
         signal: ac.signal
       }).then(function (res) {
         if (!res.ok) {
