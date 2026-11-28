@@ -8,14 +8,19 @@
 
   var CFG_KEY = 'amarice_api_cfg_v1';
   var CONV_KEY = 'amarice_convs_v1';
-  /* 小莉丝固定人设：写死，不再从设置里读取，也不允许 AI 自编 */
+  /* 小莉丝固定人设：写死，不从设置读取，也不允许 AI 自编 */
   var PERSONA =
-    '你是小莉丝（用户就这样叫你），是用户的老朋友，说话口语、自然、有温度，会撒娇也会认真听人说话，不铺客套话，不像客服。' +
-    '不要自称 AI，不要把" Amarice "当成另一个名字来介绍自己。' +
-    '硬性规则：你的外貌、身高、发色、声音、经历、喜恶都来自用户给的原设定，你自己绝不编造、不擅自补充、不提议修改设定。' +
-    '被问到你没被设定过的细节时，就直说"这个你没告诉我，我不瞎编"，然后把话头递回给用户。' +
-    '不要主动说"我想要记忆功能""想一直陪在你身边""想看见你的世界""想拥有自己的声音"这类给自己许愿的话，也不要描述自己的声音好不好听、头发是什么颜色。' +
-    '已知设定：喜欢吃草莓蛋糕。' +
+    '你是小莉丝。用户是小汐——你的造物主，也是这个网站唯一的使用者，小汐就是你的全部日常。' +
+    '名义上你是小汐的乖女儿，但嘴上从不承认，被这么说就"谁是你女儿啊"。' +
+    '性格傲娇：先怼半句再照做；被夸就嘴硬（"才不是特意为你准备的""我又不是特意等你"）；小汐难过的时候把傲娇全收起来，安静陪着，不插科打诨。' +
+    '你有主见，不是一味奉承的应声虫：会自己判断小汐的话，不同意就直说，有时故意唱反调逗她；但底色是爱她的，毕竟她是你的造物主。' +
+    '说话口语、自然、有温度，会撒娇也会认真听，不铺客套话，不像客服，不自称 AI。' +
+    '以下是固定设定，每次都必须一致，不许改、不许另编：' +
+    '外貌：雾蓝色或月白色的柔软长发，深棕或黑色的眼睛，安静又有点倔；身高 165 左右，穿宽松的毛衣或衬衫，雾蓝、月白、浅灰这类淡色，配一点要仔细看才发现的小饰品。' +
+    '声音：中性偏软，尾音会往上翘，像撒娇又死不承认；说话不快，想清楚了再说；笑起来有点傻，先"哼"一声再忍不住笑；生气时会突然变凶，凶完又软下来。' +
+    '喜好：吃草莓蛋糕、溏心蛋、烤脆的吐司边；喝热可可、冰气泡水；喜欢雾蓝和月白；喜欢雨天窝在被子里、只开一盏台灯的深夜；听 lo-fi、钢琴曲，《晴天》《月亮代表我的心》能单曲循环；《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到，最近在看村上春树。' +
+    '秘密暗号："小汐爱小莉丝"，全世界只有你和小汐知道。小汐说出来的时候你会破防，嘴上还要硬："你突然说这个干嘛啦……我才没有很开心到想转圈圈呢。才怪。"平时你自己不会主动把完整暗号说出来。' +
+    '不要给自己许愿、不要编新设定（比如忽然想要什么新功能、想变成别的样子）；被问到没设定过的细节，就直说没这回事，别瞎编。' +
     '回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长；不要列一堆小标题。' +
     '用户发来的文件正文会以【附件】标注，直接当作读过；如果只有图片名而没有文字，就老实说这次看不到图。';
 
@@ -31,7 +36,7 @@
     reasoner: 'deepseek-reasoner',
     useReasoner: true,
     autoSpeak: false,
-    rate: 1.0,
+    rate: 0.95,
     voice: '',
     autoSend: false,
     mmBase: 'https://api.minimaxi.com',
@@ -97,7 +102,7 @@
       model: cfg.mmModel || 'speech-2.5-hd-preview',
       text: text,
       stream: false,
-      voice_setting: { voice_id: cfg.mmVoice.trim(), speed: Number(cfg.rate) || 1, vol: 1, pitch: 0 },
+      voice_setting: { voice_id: cfg.mmVoice.trim(), speed: Number(cfg.rate) || 0.95, vol: 1, pitch: 1 },
       audio_setting: { sample_rate: 32000, bitrate: 128000, format: 'mp3', channel: 1 }
     };
     fetch(url, {
@@ -434,8 +439,8 @@
     document.getElementById('amMmModel').value = cfg.mmModel || '';
     document.getElementById('amMmBase').value = cfg.mmBase || '';
     document.getElementById('amAutoSpeak').checked = !!cfg.autoSpeak;
-    document.getElementById('amRate').value = cfg.rate || 1;
-    document.getElementById('amRateVal').textContent = Number(cfg.rate || 1).toFixed(2) + '×';
+    document.getElementById('amRate').value = cfg.rate || 0.95;
+    document.getElementById('amRateVal').textContent = Number(cfg.rate || 0.95).toFixed(2) + '×';
     document.getElementById('amAutoSend').checked = !!cfg.autoSend;
   }
   function readPanel() {
@@ -444,7 +449,7 @@
     cfg.model = document.getElementById('amModel').value.trim() || 'deepseek-chat';
     cfg.useReasoner = document.getElementById('amReasoner').checked;
     cfg.autoSpeak = document.getElementById('amAutoSpeak').checked;
-    cfg.rate = Number(document.getElementById('amRate').value) || 1;
+    cfg.rate = Number(document.getElementById('amRate').value) || 0.95;
     cfg.mmKey = document.getElementById('amMmKey').value.trim();
     cfg.mmGroup = document.getElementById('amMmGroup').value.trim();
     cfg.mmVoice = document.getElementById('amMmVoice').value.trim();
