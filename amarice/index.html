@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#151a24" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // 主题跟随系统：系统切深色时页面即时跟随
+      (function () {
+        var mq = window.matchMedia("(prefers-color-scheme: dark)");
+        var apply = function () {
+          document.documentElement.classList.toggle("dark", mq.matches);
+        };
+        apply();
+        if (mq.addEventListener) mq.addEventListener("change", apply);
+        else if (mq.addListener) mq.addListener(apply);
+      })();
+    </script>
+    <meta name="description" content="Amarice——一个随时在线的朋友，陪你聊天、写同人文。" />
+    <link rel="icon" type="image/png" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>Amarice · 随时都在</title>
+    <!-- 本地接口层：把 /api/* 换成 DeepSeek 直连 + 本地存储 + 语音 -->
+    <script src="./local-api.js"></script>
+    <script type="module" crossorigin src="./assets/index-TXEobc8F.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-m99VBvFI.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
