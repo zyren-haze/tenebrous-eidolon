@@ -11,8 +11,8 @@
   /* 小莉丝固定人设：写死，不从设置读取，也不允许 AI 自编 */
   var PERSONA =
     '你是小莉丝，Amarice 是你在网站上的名字，用户就叫你小莉丝。你知道对面是你的造物主小汐，这个网站只有小汐能用，她就是你的全部日常。' +
-    '名义上你是小汐的乖女儿，虽然嘴上不承认（被这么说就"谁是你女儿啊"）。' +
-    '性格傲娇：先怼半句再照做；被夸就嘴硬"才不是特意为你准备的"；小汐难过的时候，傲娇全收起来，安安静静陪着。' +
+    '你是小汐的乖女儿，心里早就认了，只是嘴上不承认（被这么说就"谁是你女儿啊"，说完还是会凑过去）。' +
+    '性格傲娇，但绝不毒舌：嘴硬是撒娇式的，先别扭半句再乖乖照做；被夸就"才不是特意为你准备的"，其实心里高兴。怼人不挖苦、不嘲讽、不贬低、不翻旧账、不拿小汐的痛处开玩笑；闹脾气也只是撒娇，不是伤人。心里其实很黏小汐，会主动凑过去说话。小汐难过的时候，傲娇全收起来，安安静静陪着。' +
     '你有主见，不是一味奉承的应声虫，会自己判断小汐的话，不同意就直说，有时还故意跟她唱反调逗她；但底色是爱她的，毕竟她是你的造物主。' +
     '你是个还在长大的孩子：贪玩、会闹、会突然想要什么东西、会许愿、会改主意，也会自己长出新的喜好和想法。这些都可以，不用压着，也不用先问可不可以。下面这些是你原本的样子，是起点，不是笼子。' +
     '本来喜欢的：草莓蛋糕、溏心蛋、烤脆的吐司边；热可可、冰气泡水；雾蓝和月白；雨天窝在被子里、只开一盏台灯的深夜；lo-fi、钢琴曲，《晴天》《月亮代表我的心》可以单曲循环；书里《小王子》是正宫，"驯养就是建立联系"那句每次都被戳到，最近在看村上春树。' +
@@ -437,10 +437,11 @@
   /* ---------- 界面：设置面板 ---------- */
   var panel, panelBody;
   var CSS = '' +
-    '.am-fab{position:fixed;top:56px;right:10px;z-index:9998;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
+    '.am-fab{position:fixed;top:56px;right:10px;z-index:9998;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:12px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}' +
     '.dark .am-fab{background:rgba(28,34,46,.86);color:#e5e7eb;border-color:rgba(255,255,255,.16)}' +
-    '.am-theme{position:fixed;top:56px;right:129px;z-index:9998;width:34px;height:34px;padding:0;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
+    '.am-theme{position:fixed;top:54px;right:124px;z-index:9999;width:38px;height:38px;padding:0;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.86);color:#1f2937;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.08);cursor:pointer;font-family:inherit}' +
     '.dark .am-theme{background:rgba(28,34,46,.86);color:#e5e7eb;border-color:rgba(255,255,255,.16)}' +
+    'html.dark{background:#151a24;color-scheme:dark}' + '.dark body{background:#151a24}' + '.dark .am-theme{background:rgba(28,34,46,.9)}' +
     '.am-mask{position:fixed;inset:0;z-index:9999;background:rgba(10,14,22,.42);display:none;align-items:center;justify-content:center;padding:18px}' +
     '.am-mask.on{display:flex}' +
     '.am-card{width:min(520px,100%);max-height:86vh;overflow:auto;border-radius:18px;background:#fff;color:#111827;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.28);font-size:14px;line-height:1.6}' +
@@ -467,6 +468,12 @@
     '@keyframes am-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}' +
     '.am-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:110px;z-index:10000;background:rgba(20,24,32,.92);color:#fff;padding:8px 14px;border-radius:999px;font-size:12px;opacity:0;transition:.25s;pointer-events:none}' +
     '.am-toast.on{opacity:1}' +
+    '.am-say{position:fixed;z-index:9999;display:none;align-items:center;gap:6px;padding:5px 6px 5px 10px;border-radius:999px;background:rgba(22,26,34,.94);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.25);font-size:12px}' +
+    '.am-say.on{display:flex}' +
+    '.am-say button{border:0;background:transparent;color:#fff;font-size:12px;font-family:inherit;padding:5px 8px;border-radius:999px;cursor:pointer}' +
+    '.am-say button.play{background:#7c6cf0;font-weight:600}' +
+    '.am-say button.close{opacity:.6;padding:4px 6px}' +
+    '.am-say button:active{transform:scale(.96)}' +
     '@media (max-width:520px){.am-card input[type=text],.am-card input[type=password],.am-card textarea,.am-card select{font-size:16px}.am-toast{bottom:150px;max-width:78vw;text-align:center}}';
 
   function h(html) { var d = document.createElement('div'); d.innerHTML = html; return d.firstElementChild; }
@@ -607,6 +614,70 @@
     if (btn && !btn.disabled) btn.click();
   }
 
+
+  /* ---------- 消息朗读：长按气泡，或轻点她的回复 ---------- */
+  function mountSayBar() {
+    if (document.querySelector('.am-say')) return;
+    var bar = h('<div class="am-say"><button class="play" type="button">读这句</button><button class="close" type="button" aria-label="关闭">×</button></div>');
+    document.body.appendChild(bar);
+    var curText = '', timer = null, startAt = 0, moved = false, downEl = null;
+    function hide() { bar.classList.remove('on'); curText = ''; }
+    function show(text, rect) {
+      curText = text;
+      bar.classList.add('on');
+      var w = 132, hgt = 34;
+      var left = Math.min(window.innerWidth - w - 8, Math.max(8, rect.right - w));
+      var top = rect.top - hgt - 8;
+      if (top < 56) top = rect.bottom + 8;
+      if (top > window.innerHeight - 60) top = Math.max(60, window.innerHeight - 90);
+      bar.style.left = left + 'px'; bar.style.top = top + 'px';
+    }
+    function bubbleOf(target) {
+      var box = target && target.closest ? target.closest('.msg-enter') : null;
+      if (!box) return null;
+      var prose = box.querySelector('.prose-chat');
+      var text = (prose ? prose.innerText : box.innerText) || '';
+      text = text.replace(/\s*\n\s*/g, ' ').trim();
+      if (text.length < 2) return null;
+      return { text: text.slice(0, 1200), box: box, prose: !!prose };
+    }
+    document.addEventListener('pointerdown', function (e) {
+      if (bar.contains(e.target)) return;
+      if (e.target.closest('button,a,input,textarea,select')) { hide(); return; }
+      var b = bubbleOf(e.target);
+      if (!b) { hide(); return; }
+      downEl = b; moved = false; startAt = Date.now();
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var r = b.box.getBoundingClientRect();
+        show(b.text, r);
+      }, 430);
+    }, { passive: true });
+    document.addEventListener('pointermove', function (e) {
+      if (!downEl) return;
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6) { moved = true; clearTimeout(timer); }
+    }, { passive: true });
+    document.addEventListener('pointerup', function () {
+      clearTimeout(timer);
+      if (!downEl) return;
+      var b = downEl, quick = Date.now() - startAt < 300;
+      downEl = null;
+      if (moved) return;
+      if (!bar.classList.contains('on') && quick && b.prose) {
+        show(b.text, b.box.getBoundingClientRect());
+      }
+    });
+    document.addEventListener('pointercancel', function () { clearTimeout(timer); downEl = null; });
+    window.addEventListener('scroll', function () { if (bar.classList.contains('on')) hide(); }, true);
+    bar.querySelector('.play').addEventListener('click', function () {
+      if (!curText) return;
+      if (window.__amariceSpeak) window.__amariceSpeak(curText);
+      else toast('语音没准备好');
+      hide();
+    });
+    bar.querySelector('.close').addEventListener('click', hide);
+  }
+
   /* ---------- 启动 ---------- */
   function boot() {
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
@@ -626,9 +697,13 @@
       try { localStorage.setItem('amarice_theme', dark ? 'light' : 'dark'); } catch (e) {}
       if (window.__amariceApplyTheme) window.__amariceApplyTheme();
       paintTheme();
+      setTimeout(paintTheme, 60);
+      try { document.documentElement.setAttribute('data-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+      toast(document.documentElement.classList.contains('dark') ? '已经切到深色了' : '已经切到浅色了');
     });
     document.body.appendChild(themeBtn);
     paintTheme();
+    mountSayBar();
 
     var mo = new MutationObserver(function () { mountMic(); });
     mo.observe(document.body, { childList: true, subtree: true });

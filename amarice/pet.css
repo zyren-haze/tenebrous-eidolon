@@ -5,13 +5,29 @@
 }
 
 .pet-walk {
-  animation: pet-walk-bob 0.55s ease-in-out infinite;
+  animation: pet-glide 2.6s ease-in-out infinite;
+  transform-origin: 50% 55%;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.22));
 }
-@keyframes pet-walk-bob {
-  0%, 100% { transform: translateY(0) rotate(-1.5deg) scaleX(1); }
-  25% { transform: translateY(-4px) rotate(1.5deg) scaleX(0.97); }
-  50% { transform: translateY(0) rotate(-1deg) scaleX(1); }
-  75% { transform: translateY(-4px) rotate(1deg) scaleX(0.97); }
+/* 没有脚，所以是慢悠悠飘过去，不是一步一步蹦 */
+@keyframes pet-glide {
+  0%   { transform: translateY(0) rotate(-0.8deg); }
+  30%  { transform: translateY(-5px) rotate(0.3deg); }
+  55%  { transform: translateY(-2px) rotate(1deg); }
+  80%  { transform: translateY(-6px) rotate(0.2deg); }
+  100% { transform: translateY(0) rotate(-0.8deg); }
+}
+
+.pet-stomp {
+  animation: pet-stomp-kf 0.52s ease-in-out 2;
+  transform-origin: 50% 92%;
+}
+@keyframes pet-stomp-kf {
+  0%   { transform: translateY(0) scale(1, 1); }
+  28%  { transform: translateY(-5px) scale(0.98, 1.05); }
+  55%  { transform: translateY(2px) scale(1.06, 0.9); }
+  75%  { transform: translateY(0) scale(1, 1); }
+  100% { transform: translateY(0) scale(1, 1); }
 }
 
 .pet-eat {
