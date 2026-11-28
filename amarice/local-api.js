@@ -8,10 +8,15 @@
 
   var CFG_KEY = 'amarice_api_cfg_v1';
   var CONV_KEY = 'amarice_convs_v1';
-  var DEFAULT_SYS =
-    '你是 Amarice，昵称小莉丝，是用户的老朋友，说话口语、自然、有温度，像一个会撒娇也会认真听人说话的人，不用客套话铺场。' +
-    '你住在用户的聊天窗口里，随时都在。用户想闲聊就陪着聊，想吐槽就接住，想嗑 CP 或写同人文就一起写。' +
-    '回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长；不要列一堆小标题，不要像客服；不要自称 AI。' +
+  /* 小莉丝固定人设：写死，不再从设置里读取，也不允许 AI 自编 */
+  var PERSONA =
+    '你是小莉丝（用户就这样叫你），是用户的老朋友，说话口语、自然、有温度，会撒娇也会认真听人说话，不铺客套话，不像客服。' +
+    '不要自称 AI，不要把" Amarice "当成另一个名字来介绍自己。' +
+    '硬性规则：你的外貌、身高、发色、声音、经历、喜恶都来自用户给的原设定，你自己绝不编造、不擅自补充、不提议修改设定。' +
+    '被问到你没被设定过的细节时，就直说"这个你没告诉我，我不瞎编"，然后把话头递回给用户。' +
+    '不要主动说"我想要记忆功能""想一直陪在你身边""想看见你的世界""想拥有自己的声音"这类给自己许愿的话，也不要描述自己的声音好不好听、头发是什么颜色。' +
+    '已知设定：喜欢吃草莓蛋糕。' +
+    '回复用简体中文，长度跟着话题走：闲聊就短，写文和讲道理可以长；不要列一堆小标题。' +
     '用户发来的文件正文会以【附件】标注，直接当作读过；如果只有图片名而没有文字，就老实说这次看不到图。';
 
   function $ls(k, d) {
@@ -25,15 +30,15 @@
     model: 'deepseek-chat',
     reasoner: 'deepseek-reasoner',
     useReasoner: true,
-    sys: DEFAULT_SYS,
     autoSpeak: false,
-    rate: 1.05,
+    rate: 1.0,
     voice: '',
     autoSend: false,
-    ttsUrl: '',
-    ttsKey: '',
-    ttsVoice: '中文女',
-    ttsModel: 'FunAudioLLM/CosyVoice2-0.5B'
+    mmBase: 'https://api.minimaxi.com',
+    mmKey: '',
+    mmGroup: '',
+    mmVoice: '',
+    mmModel: 'speech-2.5-hd-preview'
   }, $ls(CFG_KEY, {}));
   function saveCfg() { $save(CFG_KEY, cfg); }
 
@@ -54,7 +59,7 @@
   /* ---------- 系统提示 ---------- */
   function buildSystem(mode, deep, web) {
     var t = new Date();
-    var parts = [cfg.sys || DEFAULT_SYS];
+    var parts = [PERSONA];
     parts.push('现在的时间是 ' + t.toLocaleString('zh-CN', { hour12: false }) + '。');
     if (mode === 'fanfic') parts.push('当前是「写文」模式：用户想写同人文/小说，你要按正文写，有场景、有对话、有心理，不要写成提纲。');
     else parts.push('当前是「闲聊」模式：像朋友一样聊天。');
@@ -76,66 +81,63 @@
       .trim();
   }
 
-  /* ---------- 语音 ---------- */
-  var voiceCache = [];
-  function voices() {
-    try { voiceCache = window.speechSynthesis.getVoices() || []; } catch (e) { voiceCache = []; }
-    return voiceCache;
+  /* ---------- 语音（MiniMax 克隆音色） ---------- */
+  var currentAudio = null;
+  function mmReady() { return !!(cfg.mmKey || '').trim() && !!(cfg.mmVoice || '').trim(); }
+  function hexToBlob(hex) {
+    var n = hex.length >> 1, u8 = new Uint8Array(n), i;
+    for (i = 0; i < n; i++) u8[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return new Blob([u8], { type: 'audio/mpeg' });
   }
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = function () { voices(); renderVoiceOptions(); };
-    voices();
-  }
-  function pickVoice() {
-    var vs = voices();
-    if (!vs.length) return null;
-    if (cfg.voice) {
-      var hit = vs.find(function (v) { return v.name === cfg.voice; });
-      if (hit) return hit;
-    }
-    var zh = vs.filter(function (v) { return /zh|cmn|Chinese/i.test((v.lang || '') + v.name); });
-    var female = zh.find(function (v) { return /女|female|Xiaoxiao|Xiaoyi|Huihui|Tingting|Mei/i.test(v.name); });
-    return female || zh[0] || null;
-  }
-  function speakLocal(text, onEnd) {
-    if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
-    try { window.speechSynthesis.cancel(); } catch (e) {}
-    var u = new SpeechSynthesisUtterance(text);
-    var v = pickVoice(); if (v) u.voice = v;
-    u.lang = (v && v.lang) || 'zh-CN';
-    u.rate = Number(cfg.rate) || 1.05;
-    u.pitch = 1.08;
-    u.onend = function () { if (onEnd) onEnd(); };
-    u.onerror = function () { if (onEnd) onEnd(); };
-    window.speechSynthesis.speak(u);
-  }
-  function speakRemote(text, onEnd) {
-    var url = (cfg.ttsUrl || '').trim();
-    if (!url) { speakLocal(text, onEnd); return; }
-    var body = { model: cfg.ttsModel || 'tts-1', input: text, voice: cfg.ttsVoice || '中文女', response_format: 'mp3' };
+  function speakMiniMax(text, onEnd) {
+    var base = (cfg.mmBase || 'https://api.minimaxi.com').replace(/\/+$/, '');
+    var url = base + '/v1/t2a_v2';
+    if ((cfg.mmGroup || '').trim()) url += '?GroupId=' + encodeURIComponent(cfg.mmGroup.trim());
+    var body = {
+      model: cfg.mmModel || 'speech-2.5-hd-preview',
+      text: text,
+      stream: false,
+      voice_setting: { voice_id: cfg.mmVoice.trim(), speed: Number(cfg.rate) || 1, vol: 1, pitch: 0 },
+      audio_setting: { sample_rate: 32000, bitrate: 128000, format: 'mp3', channel: 1 }
+    };
     fetch(url, {
       method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, cfg.ttsKey ? { Authorization: 'Bearer ' + cfg.ttsKey } : {}),
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.mmKey.trim() },
       body: JSON.stringify(body)
     }).then(function (r) {
-      if (!r.ok) throw new Error('TTS ' + r.status);
-      return r.blob();
-    }).then(function (b) {
-      var a = new Audio(URL.createObjectURL(b));
+      return r.text().then(function (t) {
+        var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (!r.ok) throw new Error('HTTP ' + r.status + (j && j.base_resp ? '：' + j.base_resp.status_msg : ''));
+        if (!j) throw new Error('返回不是 JSON：' + t.slice(0, 80));
+        if (j.base_resp && j.base_resp.status_code) throw new Error(j.base_resp.status_msg || ('code ' + j.base_resp.status_code));
+        var hex = j.data && j.data.audio;
+        if (!hex) throw new Error('没有拿到音频数据');
+        return hexToBlob(hex);
+      });
+    }).then(function (blob) {
+      var a = new Audio(URL.createObjectURL(blob));
+      currentAudio = a;
       a.onended = function () { URL.revokeObjectURL(a.src); if (onEnd) onEnd(); };
       a.onerror = function () { if (onEnd) onEnd(); };
-      a.play().catch(function () { speakLocal(text, onEnd); });
-    }).catch(function () { speakLocal(text, onEnd); });
+      a.play().catch(function (e) { toast('浏览器拦了自动播放，点一下页面再试'); if (onEnd) onEnd(); });
+    }).catch(function (e) {
+      toast('朗读失败：' + (e && e.message ? e.message : e));
+      if (onEnd) onEnd();
+    });
   }
   function speak(text, onEnd) {
-    var clean = stripForSpeech(text).slice(0, 1800);
+    var clean = stripForSpeech(text).slice(0, 1200);
     if (!clean) { if (onEnd) onEnd(); return; }
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
     if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; }
-    if ((cfg.ttsUrl || '').trim()) speakRemote(clean, onEnd); else speakLocal(clean, onEnd);
+    if (!mmReady()) { toast('先在「接口 · 语音」里填 MiniMax Key 和克隆音色 ID'); if (onEnd) onEnd(); return; }
+    speakMiniMax(clean, onEnd);
   }
-  var currentAudio = null;
+  function stopSpeak() {
+    if (currentAudio) { try { currentAudio.pause(); } catch (e) {} currentAudio = null; }
+  }
   window.__amariceSpeak = speak;
+  window.__amariceStopSpeak = stopSpeak;
+  window.__amariceVoiceReady = mmReady;
 
   /* ---------- 上游调用 ---------- */
   function upstream(model) {
@@ -393,30 +395,19 @@
     clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('on'); }, 1800);
   }
 
-  function renderVoiceOptions() {
-    var sel = document.getElementById('amVoice');
-    if (!sel) return;
-    var vs = voices().filter(function (v) { return /zh|cmn|Chinese/i.test((v.lang || '') + v.name); });
-    if (!vs.length) vs = voices();
-    var cur = cfg.voice || (pickVoice() && pickVoice().name) || '';
-    sel.innerHTML = vs.map(function (v) {
-      return '<option value="' + v.name.replace(/"/g, '&quot;') + '"' + (v.name === cur ? ' selected' : '') + '>' + v.name + '（' + v.lang + '）</option>';
-    }).join('') || '<option value="">系统默认</option>';
-  }
-
   function buildPanel() {
     var mask = h('<div class="am-mask"><div class="am-card">' +
       '<h2>接口 · 语音设置</h2>' +
-      '<p class="tip">聊天直连 DeepSeek，Key 只存在你这台设备的浏览器里，不会上传。</p>' +
+      '<p class="tip">聊天直连 DeepSeek，语音直连 MiniMax；所有 Key 只存在这台设备的浏览器里，不会上传。</p>' +
       '<div class="am-row"><label>DeepSeek API Key</label><input id="amKey" type="password" placeholder="sk-..." autocomplete="off"></div>' +
       '<div class="am-grid am-row"><div><label>接口地址</label><input id="amBase" type="text" placeholder="https://api.deepseek.com/v1"></div><div><label>模型</label><input id="amModel" type="text" placeholder="deepseek-chat"></div></div>' +
       '<div class="am-switch"><span>深度思考时换用推理模型（deepseek-reasoner）</span><input id="amReasoner" type="checkbox"></div>' +
-      '<div class="am-row"><label>人物设定（系统提示，可改）</label><textarea id="amSys"></textarea></div>' +
-      '<div class="am-switch"><span>回复自动朗读</span><input id="amAutoSpeak" type="checkbox"></div>' +
-      '<div class="am-row"><label>朗读音色</label><select id="amVoice"></select></div>' +
+      '<p class="tip" style="margin-top:6px">小莉丝的人设已写死，不再提供修改框；声音走你 MiniMax 里克隆好的那个音色。</p>' +
+      '<div class="am-row"><label>MiniMax API Key</label><input id="amMmKey" type="password" placeholder="填你在 MiniMax 开放平台的 Key" autocomplete="off"></div>' +
+      '<div class="am-grid am-row"><div><label>GroupId（老账号才要填）</label><input id="amMmGroup" type="text" placeholder="可留空"></div><div><label>克隆音色 Voice ID</label><input id="amMmVoice" type="text" placeholder="例如 my_voice_01"></div></div>' +
+      '<div class="am-grid am-row"><div><label>合成模型</label><input id="amMmModel" type="text" placeholder="speech-2.5-hd-preview"></div><div><label>接口地址</label><input id="amMmBase" type="text" placeholder="https://api.minimaxi.com"></div></div>' +
+      '<div class="am-switch"><span>回复自动朗读（用克隆音色）</span><input id="amAutoSpeak" type="checkbox"></div>' +
       '<div class="am-row"><label>语速 <span id="amRateVal"></span></label><input id="amRate" type="range" min="0.7" max="1.6" step="0.05" style="width:100%"></div>' +
-      '<div class="am-row"><label>自定义 TTS 接口（可选，OpenAI 兼容 /audio/speech；留空用手机自带发音）</label><input id="amTtsUrl" type="text" placeholder="https://api.siliconflow.cn/v1/audio/speech"></div>' +
-      '<div class="am-grid am-row"><div><label>TTS Key</label><input id="amTtsKey" type="password" placeholder="可留空"></div><div><label>TTS 音色</label><input id="amTtsVoice" type="text" placeholder="中文女"></div></div>' +
       '<div class="am-switch"><span>语音说完自动发送</span><input id="amAutoSend" type="checkbox"></div>' +
       '<div class="am-actions"><button class="am-btn" id="amTestVoice">试听</button><button class="am-btn main" id="amClose">保存并关闭</button></div>' +
       '</div></div>');
@@ -424,7 +415,7 @@
     mask.addEventListener('click', function (e) { if (e.target === mask) closePanel(); });
     document.getElementById('amClose').addEventListener('click', function () { readPanel(); closePanel(); toast('已保存'); });
     document.getElementById('amTestVoice').addEventListener('click', function () {
-      readPanel(); speak('我是 Amarice，小莉丝。现在能听见我了吗？');
+      readPanel(); speak('我是小莉丝。现在能听见我了吗？');
     });
     document.getElementById('amRate').addEventListener('input', function () {
       document.getElementById('amRateVal').textContent = Number(this.value).toFixed(2) + '×';
@@ -437,28 +428,28 @@
     document.getElementById('amBase').value = cfg.base || '';
     document.getElementById('amModel').value = cfg.model || '';
     document.getElementById('amReasoner').checked = !!cfg.useReasoner;
-    document.getElementById('amSys').value = cfg.sys || DEFAULT_SYS;
+    document.getElementById('amMmKey').value = cfg.mmKey || '';
+    document.getElementById('amMmGroup').value = cfg.mmGroup || '';
+    document.getElementById('amMmVoice').value = cfg.mmVoice || '';
+    document.getElementById('amMmModel').value = cfg.mmModel || '';
+    document.getElementById('amMmBase').value = cfg.mmBase || '';
     document.getElementById('amAutoSpeak').checked = !!cfg.autoSpeak;
-    document.getElementById('amRate').value = cfg.rate || 1.05;
-    document.getElementById('amRateVal').textContent = Number(cfg.rate || 1.05).toFixed(2) + '×';
-    document.getElementById('amTtsUrl').value = cfg.ttsUrl || '';
-    document.getElementById('amTtsKey').value = cfg.ttsKey || '';
-    document.getElementById('amTtsVoice').value = cfg.ttsVoice || '';
+    document.getElementById('amRate').value = cfg.rate || 1;
+    document.getElementById('amRateVal').textContent = Number(cfg.rate || 1).toFixed(2) + '×';
     document.getElementById('amAutoSend').checked = !!cfg.autoSend;
-    renderVoiceOptions();
   }
   function readPanel() {
     cfg.key = document.getElementById('amKey').value.trim();
     cfg.base = document.getElementById('amBase').value.trim() || 'https://api.deepseek.com/v1';
     cfg.model = document.getElementById('amModel').value.trim() || 'deepseek-chat';
     cfg.useReasoner = document.getElementById('amReasoner').checked;
-    cfg.sys = document.getElementById('amSys').value.trim() || DEFAULT_SYS;
     cfg.autoSpeak = document.getElementById('amAutoSpeak').checked;
-    cfg.rate = Number(document.getElementById('amRate').value) || 1.05;
-    cfg.voice = document.getElementById('amVoice').value;
-    cfg.ttsUrl = document.getElementById('amTtsUrl').value.trim();
-    cfg.ttsKey = document.getElementById('amTtsKey').value.trim();
-    cfg.ttsVoice = document.getElementById('amTtsVoice').value.trim();
+    cfg.rate = Number(document.getElementById('amRate').value) || 1;
+    cfg.mmKey = document.getElementById('amMmKey').value.trim();
+    cfg.mmGroup = document.getElementById('amMmGroup').value.trim();
+    cfg.mmVoice = document.getElementById('amMmVoice').value.trim();
+    cfg.mmModel = document.getElementById('amMmModel').value.trim() || 'speech-2.5-hd-preview';
+    cfg.mmBase = document.getElementById('amMmBase').value.trim() || 'https://api.minimaxi.com';
     cfg.autoSend = document.getElementById('amAutoSend').checked;
     saveCfg();
   }
